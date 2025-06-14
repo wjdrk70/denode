@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/denode/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/denode/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/denode",
+  "projects": {
+    "denode": {
+      "type": "application",
+      "root": "apps/denode",
+      "entryFile": "main",
+      "sourceRoot": "apps/denode/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/denode/tsconfig.app.json"
+      }
+    },
+    "core-api": {
+      "type": "application",
+      "root": "apps/core-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/core-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/core-api/tsconfig.app.json"
+      }
+    },
+    "domain": {
+      "type": "library",
+      "root": "libs/domain",
+      "entryFile": "index",
+      "sourceRoot": "libs/domain/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/domain/tsconfig.lib.json"
+      }
+    },
+    "storage": {
+      "type": "library",
+      "root": "libs/storage",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage/tsconfig.lib.json"
+      }
+    },
+    "core-enum": {
+      "type": "library",
+      "root": "libs/core-enum",
+      "entryFile": "index",
+      "sourceRoot": "libs/core-enum/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core-enum/tsconfig.lib.json"
+      }
+    }
+  }
+}
