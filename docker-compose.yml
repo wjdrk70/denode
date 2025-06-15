@@ -3,9 +3,11 @@ services:
   mysql:
     image: mysql:8.0
     container_name: denode-db
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: mypassword
-      MYSQL_DATABASE: denode
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
     ports:
       - "3306:3306"
     command:
@@ -13,7 +15,7 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
-#      - ./sql-init:/docker-entrypoint-initdb.d
+      - ./sql-init:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
@@ -30,6 +32,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: denode-nestjs-application
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     depends_on:
@@ -37,11 +41,11 @@ services:
         condition: service_healthy
     environment:
       # 데이터베이스 연결 정보
-      DATABASE_HOST: mysql
-      DATABASE_PORT: 3306
-      DATABASE_USER: root
-      DATABASE_PASSWORD: mypassword
-      DATABASE_NAME: denode
+      DATABASE_HOST: ${DB_HOST}
+      DATABASE_PORT: ${DB_PORT}
+      DATABASE_USER: ${DB_USERNAME}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DATABASE_NAME: ${DB_DATABASE}
     volumes:
       - .:/app
       - /app/node_modules
