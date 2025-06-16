@@ -5,9 +5,10 @@ import { PRODUCT_REPOSITORY } from '@app/domain/catalog/product.repository';
 import { UserEntity } from '@app/storage/entities/user.entity';
 import { UserOrmRepository } from '@app/storage/repositories/user.orm.repository';
 import { ProductOrmRepository } from '@app/storage/repositories/product.orm.repository';
+import { ProductEntity } from '@app/storage/entities/product.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, ProductEntity])],
   providers: [
     { provide: USER_REPOSITORY, useClass: UserOrmRepository },
     { provide: PRODUCT_REPOSITORY, useClass: ProductOrmRepository },

@@ -15,7 +15,6 @@ export class ProductOrmRepository implements ProductRepository {
     return entity ? ProductMapper.toDomain(entity) : null;
   }
 
-
   async save(product: Product): Promise<Product> {
     const entity = ProductMapper.toEntity(product);
     const saveEntity = await this.repository.save(entity);
