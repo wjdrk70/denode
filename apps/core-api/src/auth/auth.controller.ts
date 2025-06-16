@@ -15,9 +15,8 @@ export class AuthController {
   @ApiResponse({ status: 409, description: '이미 존재하는 이메일' })
   async signUp(@Body() dto: CreateUserDto): Promise<SignUpResponseDto> {
     const user = await this.authService.signUp(dto);
-    if (user) {
-      return new SignUpResponseDto(user.email, '회원가입 완료');
-    }
+
+    return new SignUpResponseDto(user.email, '회원가입 완료');
   }
 
   @Post('signin')

@@ -3,7 +3,7 @@ import { User } from '@app/domain/user/user';
 
 export class UserMapper {
   static toDomain(entity: UserEntity): User {
-    return new User({
+    return User.create({
       id: entity.id,
       email: entity.email,
       password: entity.password,
