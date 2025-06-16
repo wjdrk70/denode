@@ -88,9 +88,11 @@
     ],
     "moduleNameMapper": {
       "^@api/(.*)$": "<rootDir>/apps/core-api/src/$1",
-      "^@app/domain(|/.*)$": "<rootDir>/libs/domain/src/$1",
       "^@app/storage(|/.*)$": "<rootDir>/libs/storage/src/$1",
-      "^@app/core-enum(|/.*)$": "<rootDir>/libs/core-enum/src/$1"
+      "^@app/core-enum(|/.*)$": "<rootDir>/libs/core-enum/src/$1",
+      "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1",
+      "^@app/product(|/.*)$": "<rootDir>/libs/product/src/$1",
+      "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1"
     }
   }
 }

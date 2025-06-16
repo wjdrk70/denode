@@ -1,8 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthService } from '@api/auth/auth.service';
-import { CreateUserDto } from '@api/auth/dto/create-user.dto';
-import { SignUpResponseDto } from '@api/auth/dto/signup-reponse.dto';
+import { AuthService } from '@app/auth/auth.service';
+import { CreateUserDto } from '@app/auth/dto/create-user.dto';
+import { SignUpResponseDto } from '@app/auth/dto/signup-reponse.dto';
 
 @ApiTags('auth 인증')
 @Controller('auth')

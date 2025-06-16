@@ -6,7 +6,7 @@ import { ProductEntity } from '@app/storage/entities/product.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CreateProductDto } from '@api/catalog/dto/create-product.dto';
+import { CreateProductDto } from '../../../../../../libs/product/src/dto/create-product.dto';
 
 describe('ProductController (e2e)', () => {
   let app: INestApplication;

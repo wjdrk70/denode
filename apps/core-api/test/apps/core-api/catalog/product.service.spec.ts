@@ -1,8 +1,8 @@
-import { PRODUCT_REPOSITORY, ProductRepository } from '@app/domain/catalog/product.repository';
+import { PRODUCT_REPOSITORY, ProductRepository } from '@app/catalog/domain/product.repository';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateProductDto } from '@api/catalog/dto/create-product.dto';
-import { Product } from '@app/domain/catalog/product';
-import { ProductService } from '@api/catalog/product.service';
+import { CreateProductDto } from '../../../../../../libs/product/src/dto/create-product.dto';
+import { Product } from '@app/catalog/domain/product';
+import { ProductService } from '../../../../../../libs/product/src/product.service';
 import { ConflictException } from '@nestjs/common';
 
 describe('ProductService', () => {

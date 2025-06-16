@@ -1,9 +1,9 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ProductService } from '@api/catalog/product.service';
-import { JwtAuthGuard } from '@api/auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '@app/auth/guard/jwt-auth.guard';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreateProductDto } from '@api/catalog/dto/create-product.dto';
-import { Product } from '@app/domain/catalog/product';
+import { CreateProductDto } from '@app/product/dto/create-product.dto';
+import { ProductService } from '@app/product';
+import { Product } from '@app/product/domain/product';
 
 @Controller('product')
 export class ProductController {

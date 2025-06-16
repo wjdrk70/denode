@@ -1,9 +1,9 @@
-import { UserRepository } from '@app/domain/user/user.repository';
+import { UserRepository } from '@app/user/domain/user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '@app/storage/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { User } from '@app/domain/user/user';
+import { User } from '@app/user/domain/user';
 import { UserMapper } from '@app/storage/mappers/user.mapper';
 
 @Injectable()

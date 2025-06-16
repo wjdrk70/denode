@@ -2,12 +2,12 @@ import * as process from 'node:process';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CoreApiController } from './core-api.controller';
+import { CoreApiController } from './contorller/core-api.controller';
 import { CoreApiService } from './core-api.service';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from '@app/auth/auth.module';
 import { UserEntity } from '@app/storage/entities/user.entity';
 import { ProductEntity } from '@app/storage/entities/product.entity';
-import { ProductModule } from './catalog/product.module';
+import { ProductModule } from '../../../libs/product/src/product.module';
 
 @Module({
   imports: [

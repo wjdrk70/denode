@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { CoreApiService } from './core-api.service';
+import { CoreApiService } from '../core-api.service';
 
 @Controller()
 export class CoreApiController {

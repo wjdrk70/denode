@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { UserModule } from '@app/user';
+import { AuthController } from '@api/contorller/auth.controller';
+import { AuthService } from '@app/auth/auth.service';
 import { StorageModule } from '@app/storage';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '@api/auth/jwt.strategy';
+import { JwtStrategy } from '@app/auth/jwt.strategy';
 
 @Module({
   imports: [
+    UserModule,
     StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

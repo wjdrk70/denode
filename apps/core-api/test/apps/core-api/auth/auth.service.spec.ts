@@ -2,9 +2,9 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from '@api/auth/auth.service';
-import { UserRepository, USER_REPOSITORY } from '@app/domain/user/user.repository';
-import { User } from '@app/domain/user/user';
+import { AuthService } from '@app/auth/auth.service';
+import { UserRepository, USER_REPOSITORY } from '@app/user/domain/user.repository';
+import { User } from '@app/user/domain/user';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),

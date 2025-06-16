@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from '@app/domain/catalog/product';
-import { ProductRepository } from '@app/domain/catalog/product.repository';
+import { Product } from '@app/catalog/domain/product';
+import { ProductRepository } from '@app/catalog/domain/product.repository';
 import { ProductEntity } from '@app/storage/entities/product.entity';
 import { ProductMapper } from '@app/storage/mappers/product.mapper';
 

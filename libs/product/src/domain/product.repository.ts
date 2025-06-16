@@ -1,4 +1,5 @@
-import { Product } from '@app/domain/catalog/product';
+import { Product } from '@app/product/domain/product';
+
 
 export const PRODUCT_REPOSITORY = Symbol.for('PRODUCT_REPOSITORY');
 

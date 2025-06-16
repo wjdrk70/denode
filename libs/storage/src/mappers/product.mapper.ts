@@ -1,5 +1,5 @@
 import { ProductEntity } from '@app/storage/entities/product.entity';
-import { Product } from '@app/domain/catalog/product';
+import { Product } from '@app/catalog/domain/product';
 
 export class ProductMapper {
   static toDomain(entity: ProductEntity): Product {

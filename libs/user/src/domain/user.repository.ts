@@ -1,4 +1,4 @@
-import { User } from '@app/domain/user/user';
+import { User } from '@app/user/domain/user';
 
 export const USER_REPOSITORY = Symbol.for('USER_REPOSITORY');
 
