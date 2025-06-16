@@ -1,10 +1,10 @@
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '@api/auth/auth.service';
 import { UserRepository, USER_REPOSITORY } from '@app/domain/user/user.repository';
 import { User } from '@app/domain/user/user';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -56,7 +56,7 @@ describe('AuthService', () => {
 
     it('이미 존재하는 이메일로 가입 시 ConflictException을 던져야 한다', async () => {
       // given
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(new User(signUpDto));
+      (userRepository.findByEmail as jest.Mock).mockResolvedValue(User.create({ ...signUpDto }));
 
       // when & then
       await expect(service.signUp(signUpDto)).rejects.toThrow(ConflictException);
@@ -67,7 +67,12 @@ describe('AuthService', () => {
       const hashedPassword = 'hashed_password';
       (userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      (userRepository.save as jest.Mock).mockImplementation(async (user) => new User({ id: 1, ...user }));
+      (userRepository.save as jest.Mock).mockImplementation(async (user) =>
+        User.create({
+          email: signUpDto.email,
+          password: hashedPassword,
+        }),
+      );
 
       // when
       const result = await service.signUp(signUpDto);
@@ -82,7 +87,7 @@ describe('AuthService', () => {
   describe('로그인', () => {
     const signInDto = { email: 'test@example.com', password: 'password123' };
     const hashedPassword = 'hashed_password';
-    const user = new User({ id: 1, email: signInDto.email, password: hashedPassword });
+    const user = User.create({ email: signInDto.email, password: hashedPassword });
 
     it('가입되지 않은 이메일로 로그인 시 UnauthorizedException을 던져야 한다', async () => {
       // given
