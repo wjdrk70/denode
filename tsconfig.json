@@ -50,6 +50,12 @@
       ],
       "@app/auth/*": [
         "libs/auth/src/*"
+      ],
+      "@app/inventory": [
+        "libs/inventory/src"
+      ],
+      "@app/inventory/*": [
+        "libs/inventory/src/*"
       ]
     }
   }

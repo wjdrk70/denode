@@ -5,8 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CoreApiController } from './contorller/core-api.controller';
 import { CoreApiService } from './core-api.service';
 import { AuthModule } from '@app/auth/auth.module';
-import { UserEntity } from '@app/storage/entities/user.entity';
-import { ProductEntity } from '@app/storage/entities/product.entity';
+import { UserEntity } from '@app/storage/entity/user.entity';
+import { ProductEntity } from '@app/storage/entity/product.entity';
 import { ProductModule } from '../../../libs/product/src/product.module';
 
 @Module({

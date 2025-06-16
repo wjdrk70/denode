@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { USER_REPOSITORY } from '@app/user/domain/user.repository';
 import { PRODUCT_REPOSITORY } from '@app/product/domain/product.repository';
-import { UserEntity } from '@app/storage/entities/user.entity';
-import { UserOrmRepository } from '@app/storage/repositories/user.orm.repository';
-import { ProductOrmRepository } from '@app/storage/repositories/product.orm.repository';
-import { ProductEntity } from '@app/storage/entities/product.entity';
+import { UserEntity } from '@app/storage/entity/user.entity';
+import { UserOrmRepository } from '@app/storage/repository/user.orm.repository';
+import { ProductOrmRepository } from '@app/storage/repository/product.orm.repository';
+import { ProductEntity } from '@app/storage/entity/product.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, ProductEntity])],

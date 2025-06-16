@@ -1,8 +1,8 @@
 import * as request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { UserEntity } from '@app/storage/entities/user.entity';
-import { ProductEntity } from '@app/storage/entities/product.entity';
+import { UserEntity } from '@app/storage/entity/user.entity';
+import { ProductEntity } from '@app/storage/entity/product.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
