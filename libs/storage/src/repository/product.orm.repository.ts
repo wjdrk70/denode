@@ -5,11 +5,13 @@ import { Product } from '@app/product/domain/product';
 import { ProductRepository } from '@app/product/domain/product.repository';
 import { ProductEntity } from '@app/storage/entity/product.entity';
 import { ProductMapper } from '@app/storage/mapper/product.mapper';
-import e from 'express';
 
 @Injectable()
 export class ProductOrmRepository implements ProductRepository {
-  constructor(@InjectRepository(ProductEntity) private readonly repository: Repository<ProductEntity>) {}
+  constructor(
+    @InjectRepository(ProductEntity)
+    private readonly repository: Repository<ProductEntity>,
+  ) {}
 
   async findById(productId: number): Promise<Product | null> {
     const entity = await this.repository.findOneBy({ id: productId });

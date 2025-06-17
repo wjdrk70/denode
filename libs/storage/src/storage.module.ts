@@ -6,9 +6,11 @@ import { UserEntity } from '@app/storage/entity/user.entity';
 import { UserOrmRepository } from '@app/storage/repository/user.orm.repository';
 import { ProductOrmRepository } from '@app/storage/repository/product.orm.repository';
 import { ProductEntity } from '@app/storage/entity/product.entity';
+import { SkuEntity } from '@app/storage/entity/sku.entity';
+import { StockHistoryEntity } from '@app/storage/entity/stock-history.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, ProductEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, ProductEntity, SkuEntity, StockHistoryEntity])],
   providers: [
     { provide: USER_REPOSITORY, useClass: UserOrmRepository },
     { provide: PRODUCT_REPOSITORY, useClass: ProductOrmRepository },

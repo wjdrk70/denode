@@ -26,7 +26,6 @@ CREATE TABLE sku
     expiration_date DATE NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_sku_product FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE,
     CONSTRAINT uq_sku_product_expiration UNIQUE (product_id, expiration_date)
 );
 
@@ -37,5 +36,4 @@ CREATE TABLE stock_history
     type        VARCHAR(10) NOT NULL,  -- 'INBOUND' 또는 'OUTBOUND'
     quantity    INT UNSIGNED NOT NULL, -- 변경된 수량
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_stock_history_sku FOREIGN KEY (sku_id) REFERENCES sku (id)
 );
