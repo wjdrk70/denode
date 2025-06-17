@@ -16,7 +16,7 @@ describe('ProductController (e2e)', () => {
 
   const userCredentials = { email: 'test2@example.com', password: 'password123' };
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [CoreApiModule],
     }).compile();
@@ -54,7 +54,7 @@ describe('ProductController (e2e)', () => {
     accessToken = loginResponse.body.accessToken;
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 

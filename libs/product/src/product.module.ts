@@ -6,7 +6,7 @@ import { AuthModule } from '@app/auth/auth.module';
 
 @Module({
   imports: [StorageModule, AuthModule],
-  controllers: [ProductController],
   providers: [ProductService],
+  exports: [ProductService],
 })
 export class ProductModule {}

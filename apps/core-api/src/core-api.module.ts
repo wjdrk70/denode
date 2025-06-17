@@ -8,6 +8,13 @@ import { AuthModule } from '@app/auth/auth.module';
 import { UserEntity } from '@app/storage/entity/user.entity';
 import { ProductEntity } from '@app/storage/entity/product.entity';
 import { ProductModule } from '../../../libs/product/src/product.module';
+import { InventoryModule } from '@app/inventory';
+import { SkuEntity } from '@app/storage/entity/sku.entity';
+import { StockHistoryEntity } from '@app/storage/entity/stock-history.entity';
+import { TransactionModule } from '@app/transaction';
+import { AuthController } from '@api/contorller/auth.controller';
+import { ProductController } from '@api/contorller/product.controller';
+import { InventoryController } from '@api/contorller/inventory.controller';
 
 @Module({
   imports: [
@@ -25,16 +32,19 @@ import { ProductModule } from '../../../libs/product/src/product.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [UserEntity, ProductEntity],
+        entities: [UserEntity, ProductEntity, SkuEntity, StockHistoryEntity],
         synchronize: false,
         logger: 'advanced-console',
         logging: ['query', 'error', 'schema', 'warn'],
+        timezone: 'Z',
       }),
     }),
     AuthModule,
     ProductModule,
+    InventoryModule,
+    TransactionModule,
   ],
-  controllers: [CoreApiController],
+  controllers: [CoreApiController, AuthController, ProductController, InventoryController],
   providers: [CoreApiService],
 })
 export class CoreApiModule {}

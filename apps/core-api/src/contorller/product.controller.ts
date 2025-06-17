@@ -17,7 +17,7 @@ export class ProductController {
   @ApiResponse({ status: 201, description: '제품 등록 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 409, description: '이미 존재하는 제품 이름' })
-  async createProdct(@Body() dto: CreateProductDto): Promise<Product> {
+  async createProduct(@Body() dto: CreateProductDto): Promise<Product> {
     return this.productService.createProduct(dto);
   }
 }

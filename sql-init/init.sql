@@ -35,5 +35,5 @@ CREATE TABLE stock_history
     sku_id      BIGINT NOT NULL,       -- sku 테이블 외래키
     type        VARCHAR(10) NOT NULL,  -- 'INBOUND' 또는 'OUTBOUND'
     quantity    INT UNSIGNED NOT NULL, -- 변경된 수량
-    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
