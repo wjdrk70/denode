@@ -18,12 +18,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@api/*": ["apps/core-api/src/*"],
-      "@app/domain": [
-        "libs/domain/src"
-      ],
-      "@app/domain/*": [
-        "libs/domain/src/*"
+      "@api/*": [
+        "apps/core-api/src/*"
       ],
       "@app/storage": [
         "libs/storage/src"
@@ -36,6 +32,36 @@
       ],
       "@app/core-enum/*": [
         "libs/core-enum/src/*"
+      ],
+      "@app/user": [
+        "libs/user/src"
+      ],
+      "@app/user/*": [
+        "libs/user/src/*"
+      ],
+      "@app/product": [
+        "libs/product/src"
+      ],
+      "@app/product/*": [
+        "libs/product/src/*"
+      ],
+      "@app/auth": [
+        "libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "libs/auth/src/*"
+      ],
+      "@app/inventory": [
+        "libs/inventory/src"
+      ],
+      "@app/inventory/*": [
+        "libs/inventory/src/*"
+      ],
+      "@app/transaction": [
+        "libs/transaction/src"
+      ],
+      "@app/transaction/*": [
+        "libs/transaction/src/*"
       ]
     }
   }

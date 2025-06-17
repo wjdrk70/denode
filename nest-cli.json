@@ -18,15 +18,6 @@
       "tsConfigPath": "apps/core-api/tsconfig.app.json"
     }
   },
-  "domain": {
-    "type": "library",
-    "root": "libs/domain",
-    "entryFile": "index",
-    "sourceRoot": "libs/domain/src",
-    "compilerOptions": {
-      "tsConfigPath": "libs/domain/tsconfig.lib.json"
-    }
-  },
   "storage": {
     "type": "library",
     "root": "libs/storage",
@@ -43,6 +34,53 @@
     "sourceRoot": "libs/core-enum/src",
     "compilerOptions": {
       "tsConfigPath": "libs/core-enum/tsconfig.lib.json"
+    }
+  },
+  "projects": {
+    "user": {
+      "type": "library",
+      "root": "libs/user",
+      "entryFile": "index",
+      "sourceRoot": "libs/user/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/user/tsconfig.lib.json"
+      }
+    },
+    "product": {
+      "type": "library",
+      "root": "libs/product",
+      "entryFile": "index",
+      "sourceRoot": "libs/product/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/product/tsconfig.lib.json"
+      }
+    },
+    "auth": {
+      "type": "library",
+      "root": "libs/auth",
+      "entryFile": "index",
+      "sourceRoot": "libs/auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/auth/tsconfig.lib.json"
+      }
+    },
+    "inventory": {
+      "type": "library",
+      "root": "libs/inventory",
+      "entryFile": "index",
+      "sourceRoot": "libs/inventory/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/inventory/tsconfig.lib.json"
+      }
+    },
+    "transaction": {
+      "type": "library",
+      "root": "libs/transaction",
+      "entryFile": "index",
+      "sourceRoot": "libs/transaction/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/transaction/tsconfig.lib.json"
+      }
     }
   }
 }

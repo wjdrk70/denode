@@ -40,6 +40,7 @@
     "typeorm": "^0.3.24"
   },
   "devDependencies": {
+    "@golevelup/ts-jest": "^0.7.0",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^11.1.3",
@@ -88,9 +89,13 @@
     ],
     "moduleNameMapper": {
       "^@api/(.*)$": "<rootDir>/apps/core-api/src/$1",
-      "^@app/domain(|/.*)$": "<rootDir>/libs/domain/src/$1",
       "^@app/storage(|/.*)$": "<rootDir>/libs/storage/src/$1",
-      "^@app/core-enum(|/.*)$": "<rootDir>/libs/core-enum/src/$1"
+      "^@app/core-enum(|/.*)$": "<rootDir>/libs/core-enum/src/$1",
+      "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1",
+      "^@app/product(|/.*)$": "<rootDir>/libs/product/src/$1",
+      "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
+      "^@app/inventory(|/.*)$": "<rootDir>/libs/inventory/src/$1",
+      "^@app/transaction(|/.*)$": "<rootDir>/libs/transaction/src/$1"
     }
   }
 }
