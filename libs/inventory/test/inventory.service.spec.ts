@@ -8,26 +8,15 @@ import { NotFoundException } from '@nestjs/common';
 import { Sku } from '@app/inventory/domain/sku';
 import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
 import { STOCK_HISTORY_REPOSITORY, StockHistoryRepository } from '@app/inventory/domain/stock-history.repository';
-import { StockHistory } from '@app/inventory/domain/stock-history';
+import { DataSource } from 'typeorm';
+import { createMock } from '@golevelup/ts-jest';
 
 describe('InventoryService', () => {
-  let service: InventoryService;
-  let skuRepository: SkuRepository;
-  let stockHistoryRepository: StockHistoryRepository;
-  let productRepository: ProductRepository;
-
-  const mockSkuRepository = {
-    findByProductIdAndExpirationDate: jest.fn(),
-    save: jest.fn(),
-  };
-
-  const mockStockHistoryRepository = {
-    save: jest.fn(),
-  };
-
-  const mockProductRepository = {
-    findById: jest.fn(),
-  };
+  let service: jest.Mocked<InventoryService>;
+  let skuRepository: jest.Mocked<SkuRepository>;
+  let stockHistoryRepository: jest.Mocked<StockHistoryRepository>;
+  let productRepository: jest.Mocked<ProductRepository>;
+  let dataSource: DataSource;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,23 +24,28 @@ describe('InventoryService', () => {
         InventoryService,
         {
           provide: SkU_REPOSITORY,
-          useValue: mockSkuRepository,
+          useValue: createMock<SkuRepository>(),
         },
         {
           provide: STOCK_HISTORY_REPOSITORY,
-          useValue: mockStockHistoryRepository,
+          useValue: createMock<StockHistoryRepository>(),
         },
         {
           provide: PRODUCT_REPOSITORY,
-          useValue: mockProductRepository,
+          useValue: createMock<ProductRepository>(),
+        },
+        {
+          provide: DataSource,
+          useValue: createMock<DataSource>(),
         },
       ],
     }).compile();
 
-    service = module.get<InventoryService>(InventoryService);
-    skuRepository = module.get<SkuRepository>(SkU_REPOSITORY);
-    stockHistoryRepository = module.get<StockHistoryRepository>(STOCK_HISTORY_REPOSITORY);
-    productRepository = module.get<ProductRepository>(PRODUCT_REPOSITORY);
+    service = module.get(InventoryService);
+    skuRepository = module.get(SkU_REPOSITORY);
+    stockHistoryRepository = module.get(STOCK_HISTORY_REPOSITORY);
+    productRepository = module.get(PRODUCT_REPOSITORY);
+    dataSource = module.get(DataSource);
   });
 
   afterEach(() => {
@@ -72,7 +66,7 @@ describe('InventoryService', () => {
 
     it('제품이 존재하지 않으면 NotFoundException을 던져야 한다', async () => {
       // given
-      (productRepository.findById as jest.Mock).mockResolvedValue(null);
+      productRepository.findById.mockResolvedValue(null);
 
       // when & then
       await expect(service.stockInbound(stockInDto)).rejects.toThrow(new NotFoundException('제품을 찾을 수 없습니다.'));
@@ -80,11 +74,11 @@ describe('InventoryService', () => {
 
     it('새로운 재고 아이템을 성공적으로 입고 처리해야 한다', async () => {
       // given
-      (productRepository.findById as jest.Mock).mockResolvedValue(product);
-      (skuRepository.findByProductIdAndExpirationDate as jest.Mock).mockResolvedValue(null);
+      productRepository.findById.mockResolvedValue(product);
+      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(null);
 
       const savedItem = new Sku({ ...stockInDto, id: 1 });
-      (skuRepository.save as jest.Mock).mockResolvedValue(savedItem);
+      skuRepository.save.mockResolvedValue(savedItem);
 
       // when
       await service.stockInbound(stockInDto);
@@ -108,9 +102,9 @@ describe('InventoryService', () => {
         expirationDate: stockInDto.expirationDate,
       });
 
-      (productRepository.findById as jest.Mock).mockResolvedValue(product);
-      (skuRepository.findByProductIdAndExpirationDate as jest.Mock).mockResolvedValue(existItem);
-      (skuRepository.save as jest.Mock).mockImplementation((item: Sku) => Promise.resolve(item));
+      productRepository.findById.mockResolvedValue(product);
+      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(existItem);
+      skuRepository.save.mockImplementation((item: Sku) => Promise.resolve(item));
 
       // when
       const result = await service.stockInbound(stockInDto);
