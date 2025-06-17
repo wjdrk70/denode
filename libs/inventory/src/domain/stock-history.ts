@@ -12,4 +12,8 @@ export class StockHistory {
     this.type = args.type;
     this.quantity = args.quantity;
   }
+
+  static create(args: { skuId: number; type: StockHistoryType; quantity: number }): StockHistory {
+    return new StockHistory(args);
+  }
 }

@@ -72,6 +72,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/inventory/tsconfig.lib.json"
       }
+    },
+    "transaction": {
+      "type": "library",
+      "root": "libs/transaction",
+      "entryFile": "index",
+      "sourceRoot": "libs/transaction/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/transaction/tsconfig.lib.json"
+      }
     }
   }
 }

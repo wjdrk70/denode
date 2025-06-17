@@ -94,7 +94,8 @@
       "^@app/user(|/.*)$": "<rootDir>/libs/user/src/$1",
       "^@app/product(|/.*)$": "<rootDir>/libs/product/src/$1",
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
-      "^@app/inventory(|/.*)$": "<rootDir>/libs/inventory/src/$1"
+      "^@app/inventory(|/.*)$": "<rootDir>/libs/inventory/src/$1",
+      "^@app/transaction(|/.*)$": "<rootDir>/libs/transaction/src/$1"
     }
   }
 }
