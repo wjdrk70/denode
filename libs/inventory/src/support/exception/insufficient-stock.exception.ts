@@ -1,9 +1,9 @@
-import { CustomHttpException } from '@app/exception/custom-http.exception';
+import { CustomException } from '@app/exception/custom.exception';
 import { ErrorCode } from '@app/exception/error.code';
 import { HttpStatus } from '@nestjs/common';
 
-export class InsufficientStockException extends CustomHttpException {
+export class InsufficientStockException extends CustomException {
   constructor() {
-    super(ErrorCode.INSUFFICIENT_STOCK, '재고가 충분하지 않습니다.', HttpStatus.BAD_REQUEST);
+    super(ErrorCode.INSUFFICIENT_STOCK, HttpStatus.BAD_REQUEST, '재고가 충분하지 않습니다.');
   }
 }

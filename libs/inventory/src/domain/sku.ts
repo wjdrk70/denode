@@ -1,5 +1,5 @@
-import { InvalidStockQuantityError } from '@app/inventory/support/exception/invalid-stock-quantity.error';
-import { InsufficientStockError } from '@app/inventory/support/exception/insufficient-stock.error';
+import { InvalidStockQuantityException } from '@app/inventory/support/exception/invalid-stock-quantity.exception';
+import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
 
 export class Sku {
   readonly id: number;
@@ -16,23 +16,30 @@ export class Sku {
 
   increaseStock(quantity: number): void {
     if (quantity <= 0) {
-      throw new Error('수량은 1 이상 이어야 합니다.');
+      throw new InvalidStockQuantityException();
     }
     this.quantity += quantity;
   }
 
   decreaseStock(quantity: number): void {
     if (quantity <= 0) {
-      throw new InvalidStockQuantityError();
+      throw new InvalidStockQuantityException();
     }
 
     if (this.quantity < quantity) {
-      throw new InsufficientStockError();
+      throw new InsufficientStockException();
     }
     this.quantity -= quantity;
   }
 
   static create(args: { productId: number; quantity: number; expirationDate?: Date }): Sku {
     return new Sku(args);
+  }
+
+  static createEmpty(args: { productId: number; expirationDate?: Date }): Sku {
+    return new Sku({
+      ...args,
+      quantity: 0,
+    });
   }
 }

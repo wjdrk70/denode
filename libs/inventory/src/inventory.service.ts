@@ -63,7 +63,7 @@ export class InventoryService {
   }
 
   private async validateSkuExists(productId: number, expirationDate?: Date): Promise<Sku> {
-    const sku = await this.skuRepository.findByProductIdAndExpirationDate(productId, expirationDate);
+    const sku = await this.skuRepository.findForUpdate(productId, expirationDate);
     if (!sku) {
       throw new SkuNotFoundException();
     }
@@ -71,14 +71,13 @@ export class InventoryService {
   }
 
   private async getOrCreateSku(dto: StockInDto): Promise<Sku> {
-    const existSku = await this.skuRepository.findByProductIdAndExpirationDate(dto.productId, dto.expirationDate);
+    const existSku = await this.skuRepository.findForUpdate(dto.productId, dto.expirationDate);
     if (existSku) {
       return existSku;
     }
 
-    return Sku.create({
+    return Sku.createEmpty({
       productId: dto.productId,
-      quantity: dto.quantity,
       expirationDate: dto.expirationDate,
     });
   }

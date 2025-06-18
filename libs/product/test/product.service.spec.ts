@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateProductDto } from '@app/product/dto/create-product.dto';
 import { Product } from '@app/product/domain/product';
 import { ProductService } from '@app/product/product.service';
-import { ConflictException } from '@nestjs/common';
+import { ProductAlreadyExistsException } from '@app/product/support/exception/product-already-exists.exception';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -63,7 +63,7 @@ describe('ProductService', () => {
 
       // when & then
       await expect(service.createProduct(createProductDto)).rejects.toThrow(
-        new ConflictException('이미 존재하는 제품 이름입니다.'),
+        new ProductAlreadyExistsException(),
       );
       expect(productRepository.save).not.toHaveBeenCalled();
     });

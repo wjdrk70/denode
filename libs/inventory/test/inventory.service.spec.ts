@@ -2,7 +2,6 @@ import { InventoryService } from '@app/inventory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StockInDto } from '@app/inventory/dto/stock-in.dto';
 import { Product } from '@app/product/domain/product';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { createMock } from '@golevelup/ts-jest';
 import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
 import { SKU_REPOSITORY, SkuRepository } from '@app/inventory/domain/sku.repository';
@@ -12,6 +11,9 @@ import { TRANSACTION_HANDLER, TransactionHandler } from '@app/transaction/transa
 import { Sku } from '@app/inventory/domain/sku';
 import { StockHistory } from '@app/inventory/domain/stock-history';
 import { StockOutDto } from '@app/inventory/dto/stock-out.dto';
+import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
+import { SkuNotFoundException } from '@app/inventory/support/exception/sku-not-found.exception';
+import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -64,7 +66,7 @@ describe('InventoryService', () => {
       productRepository.findById.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockInbound(stockInDto)).rejects.toThrow(new NotFoundException('제품을 찾을 수 없습니다.'));
+      await expect(service.stockInbound(stockInDto)).rejects.toThrow(new ProductNotFoundException());
 
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(productRepository.findById).toHaveBeenCalledWith(1);
@@ -74,7 +76,7 @@ describe('InventoryService', () => {
       // given
       const newSku = Sku.create({
         productId: stockInDto.productId,
-        quantity: stockInDto.quantity,
+        quantity: 0,
         expirationDate: stockInDto.expirationDate,
       });
 
@@ -85,17 +87,9 @@ describe('InventoryService', () => {
         expirationDate: stockInDto.expirationDate,
       });
 
-      const savedStockHistory = new StockHistory({
-        id: 1,
-        skuId: 1,
-        type: StockHistoryType.INBOUND,
-        quantity: stockInDto.quantity,
-      });
-
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(null);
+      skuRepository.findForUpdate.mockResolvedValue(null);
       skuRepository.save.mockResolvedValue(savedSku);
-      stockHistoryRepository.save.mockResolvedValue(savedStockHistory);
 
       // when
       const result = await service.stockInbound(stockInDto);
@@ -103,10 +97,7 @@ describe('InventoryService', () => {
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(productRepository.findById).toHaveBeenCalledWith(1);
-      expect(skuRepository.findByProductIdAndExpirationDate).toHaveBeenCalledWith(
-        stockInDto.productId,
-        stockInDto.expirationDate,
-      );
+      expect(skuRepository.findForUpdate).toHaveBeenCalledWith(stockInDto.productId, stockInDto.expirationDate);
       expect(skuRepository.save).toHaveBeenCalledWith(expect.any(Sku));
       expect(stockHistoryRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -142,7 +133,7 @@ describe('InventoryService', () => {
       });
 
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(existingSku);
+      skuRepository.findForUpdate.mockResolvedValue(existingSku);
       skuRepository.save.mockResolvedValue(updatedSku);
       stockHistoryRepository.save.mockResolvedValue(savedStockHistory);
 
@@ -151,11 +142,7 @@ describe('InventoryService', () => {
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
-      expect(productRepository.findById).toHaveBeenCalledWith(1);
-      expect(skuRepository.findByProductIdAndExpirationDate).toHaveBeenCalledWith(
-        stockInDto.productId,
-        stockInDto.expirationDate,
-      );
+      expect(skuRepository.findForUpdate).toHaveBeenCalledWith(stockInDto.productId, stockInDto.expirationDate);
       expect(skuRepository.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 30 }));
       expect(stockHistoryRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -189,35 +176,31 @@ describe('InventoryService', () => {
     };
     const product = new Product({
       id: 1,
-      name: '테스트 제품',
-      description: '설명',
+      name: '초코에몽 190ml * 10',
+      description: '초코에몽 190ml sku 1',
     });
 
-    it('제품이 없으면 NotFoundException을 던져야 한다', async () => {
+    it('제품이 없으면 ProductNotFoundException 던져야 한다', async () => {
       // given
       productRepository.findById.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(
-        new NotFoundException('제품을 찾을 수 없습니다.'),
-      );
+      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new ProductNotFoundException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(productRepository.findById).toHaveBeenCalledWith(stockOutDto.productId);
     });
 
-    it('SKU가 없으면 NotFoundException을 던져야 한다', async () => {
+    it('SKU가 없으면 SkuNotFoundException 던져야 한다', async () => {
       // given
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(null);
+      skuRepository.findForUpdate.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(
-        new NotFoundException('SKU를 찾을 수 없습니다.'),
-      );
+      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new SkuNotFoundException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
     });
 
-    it('재고가 부족하면 BadRequestException을 던져야 한다', async () => {
+    it('재고가 부족하면 InsufficientStockError 던져야 한다', async () => {
       // given
       const existingSku = new Sku({
         id: 1,
@@ -226,10 +209,10 @@ describe('InventoryService', () => {
         expirationDate: stockOutDto.expirationDate,
       });
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(existingSku);
+      skuRepository.findForUpdate.mockResolvedValue(existingSku);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new BadRequestException('재고가 부족합니다.'));
+      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new InsufficientStockException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
     });
 
@@ -242,34 +225,31 @@ describe('InventoryService', () => {
       const existingSku = new Sku({
         id: 1,
         productId: stockOutDto.productId,
-        quantity: initialQuantity,
+        quantity: 10,
         expirationDate: stockOutDto.expirationDate,
       });
 
-      const updatedSku = new Sku({ ...existingSku, quantity: finalQuantity });
+      const updatedSku = new Sku({ ...existingSku, quantity: 5 });
 
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(existingSku);
+      skuRepository.findForUpdate.mockResolvedValue(existingSku);
       skuRepository.save.mockResolvedValue(updatedSku);
 
       // when
-      const result = await service.stockOutbound({ ...stockOutDto, quantity: outboundQuantity });
+      const result = await service.stockOutbound(stockOutDto);
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
-      expect(skuRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          quantity: finalQuantity,
-        }),
-      );
+      expect(skuRepository.findForUpdate).toHaveBeenCalledWith(stockOutDto.productId, stockOutDto.expirationDate);
+      expect(skuRepository.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 5 }));
       expect(stockHistoryRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           skuId: existingSku.id,
           type: StockHistoryType.OUTBOUND,
-          quantity: outboundQuantity,
+          quantity: 5,
         }),
       );
-      expect(result.quantity).toBe(finalQuantity);
+      expect(result.quantity).toBe(5);
     });
   });
 });

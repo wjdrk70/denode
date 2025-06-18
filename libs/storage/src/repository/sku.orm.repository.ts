@@ -23,6 +23,23 @@ export class SkuOrmRepository implements SkuRepository {
     return entity ? SkuMapper.toDomain(entity) : null;
   }
 
+  async findForUpdate(productId: number, expirationDate?: Date): Promise<Sku | null> {
+    const repository = this.getRepository();
+
+    const entityManager = this.contextManager.getCurrentEntityManager();
+
+    if (!entityManager) {
+      return this.findByProductIdAndExpirationDate(productId, expirationDate);
+    }
+
+    const entity = await repository.findOne({
+      where: { productId: productId, expirationDate: expirationDate || null },
+      lock: { mode: 'pessimistic_write' }, // 여기서 실제 잠금을 적용
+    });
+
+    return entity ? SkuMapper.toDomain(entity) : null;
+  }
+
   async save(item: Sku): Promise<Sku> {
     const repository = this.getRepository();
 

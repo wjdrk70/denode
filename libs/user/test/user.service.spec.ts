@@ -2,9 +2,9 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from '@app/user';
 import { USER_REPOSITORY, UserRepository } from '@app/user/domain/user.repository';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
 import { User } from '@app/user/domain/user';
 import { createMock } from '@golevelup/ts-jest';
+import { UserAlreadyExistsException } from '@app/user/support/exception/user-already-exists.exception';
 
 jest.mock('bcrypt');
 
@@ -67,9 +67,7 @@ describe('UserService', () => {
       userRepository.findByEmail.mockResolvedValue(new User({ ...createUserDto, id: 1 }));
 
       // when & then
-      await expect(service.createUser(createUserDto)).rejects.toThrow(
-        new ConflictException('이미 사용중인 이메일 입니다.'),
-      );
+      await expect(service.createUser(createUserDto)).rejects.toThrow(new UserAlreadyExistsException());
       expect(mockedBcrypt.hash).not.toHaveBeenCalled();
       expect(userRepository.save).not.toHaveBeenCalled();
     });

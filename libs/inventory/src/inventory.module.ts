@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { ProductModule } from '@app/product';
 import { TransactionModule } from '@app/transaction';
+import { StorageModule } from '@app/storage';
 
 @Module({
-  imports: [ProductModule, TransactionModule],
+  imports: [StorageModule, ProductModule, TransactionModule],
   providers: [InventoryService],
   exports: [InventoryService],
 })
