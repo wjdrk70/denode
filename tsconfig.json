@@ -62,6 +62,12 @@
       ],
       "@app/transaction/*": [
         "libs/transaction/src/*"
+      ],
+      "@app/exception": [
+        "libs/exception/src"
+      ],
+      "@app/exception/*": [
+        "libs/exception/src/*"
       ]
     }
   }

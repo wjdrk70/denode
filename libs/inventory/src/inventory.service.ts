@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { StockInDto } from '@app/inventory/dto/stock-in.dto';
 import { Sku } from '@app/inventory/domain/sku';
 import { PRODUCT_REPOSITORY, ProductRepository } from '@app/product/domain/product.repository';
@@ -7,6 +7,7 @@ import { TRANSACTION_HANDLER, TransactionHandler } from '@app/transaction/transa
 import { StockHistory } from '@app/inventory/domain/stock-history';
 import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
 import { STOCK_HISTORY_REPOSITORY, StockHistoryRepository } from '@app/inventory/domain/stock-history.repository';
+import { StockOutDto } from '@app/inventory/dto/stock-out.dto';
 
 @Injectable()
 export class InventoryService {
@@ -27,9 +28,35 @@ export class InventoryService {
 
       const sku = await this.getOrCreateSku(dto);
 
+      try {
+        sku.increaseStock(dto.quantity);
+      } catch (e) {
+        throw new BadRequestException(e.message);
+      }
+
       const saveSku = await this.skuRepository.save(sku);
 
-      await this.createStockHistory(saveSku, dto.quantity);
+      await this.createStockHistory(saveSku, dto.quantity, StockHistoryType.INBOUND);
+
+      return saveSku;
+    });
+  }
+
+  async stockOutbound(dto: StockOutDto): Promise<Sku> {
+    return this.transactionHandler.run(async () => {
+      await this.validateProductExists(dto.productId);
+
+      const sku = await this.validateSkuExists(dto.productId, dto.expirationDate);
+
+      try {
+        sku.decreaseStock(dto.quantity);
+      } catch (e) {
+        throw new BadRequestException(e.message);
+      }
+
+      const saveSku = await this.skuRepository.save(sku);
+
+      await this.createStockHistory(saveSku, dto.quantity, StockHistoryType.OUTBOUND);
 
       return saveSku;
     });
@@ -42,12 +69,18 @@ export class InventoryService {
     }
   }
 
-  private async getOrCreateSku(dto: StockInDto): Promise<Sku> {
-    const existingSku = await this.skuRepository.findByProductIdAndExpirationDate(dto.productId, dto.expirationDate);
+  private async validateSkuExists(productId: number, expirationDate?: Date): Promise<Sku> {
+    const sku = await this.skuRepository.findByProductIdAndExpirationDate(productId, expirationDate);
+    if (!sku) {
+      throw new NotFoundException('SKU를 찾을 수 없습니다.');
+    }
+    return sku;
+  }
 
-    if (existingSku) {
-      existingSku.increaseStock(dto.quantity);
-      return existingSku;
+  private async getOrCreateSku(dto: StockInDto): Promise<Sku> {
+    const existSku = await this.skuRepository.findByProductIdAndExpirationDate(dto.productId, dto.expirationDate);
+    if (existSku) {
+      return existSku;
     }
 
     return Sku.create({
@@ -57,10 +90,10 @@ export class InventoryService {
     });
   }
 
-  private async createStockHistory(sku: Sku, quantity: number): Promise<void> {
+  private async createStockHistory(sku: Sku, quantity: number, type: StockHistoryType): Promise<void> {
     const stockHistory = StockHistory.create({
       skuId: sku.id!,
-      type: StockHistoryType.INBOUND,
+      type: type,
       quantity: quantity,
     });
 
