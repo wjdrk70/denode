@@ -6,6 +6,7 @@ import { AuthService } from '@app/auth/auth.service';
 import { User } from '@app/user/domain/user';
 import { UserService } from '@app/user';
 import { createMock } from '@golevelup/ts-jest';
+import { InvalidCredentialsException } from '@app/auth/support/exception/invalid-credentials.exception';
 
 jest.mock('bcrypt');
 
@@ -67,7 +68,7 @@ describe('AuthService', () => {
       userService.findOneByEmail.mockResolvedValue(null);
 
       // when & then
-      await expect(service.signIn(signInDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.signIn(signInDto)).rejects.toThrow(InvalidCredentialsException);
     });
 
     it('비밀번호가 틀렸을 경우 UnauthorizedException을 던져야 한다', async () => {
@@ -76,7 +77,7 @@ describe('AuthService', () => {
       mockedBcrypt.compare.mockResolvedValue(false as never);
 
       // when & then
-      await expect(service.signIn(signInDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.signIn(signInDto)).rejects.toThrow(InvalidCredentialsException);
     });
 
     it('로그인에 성공하면 accessToken을 반환해야 한다', async () => {

@@ -1,5 +1,5 @@
-import { InvalidStockQuantityException } from '@app/inventory/support/exception/invalid-stock-quantity.exception';
-import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
+import { InvalidStockQuantityError } from '@app/inventory/support/exception/invalid-stock-quantity.error';
+import { InsufficientStockError } from '@app/inventory/support/exception/insufficient-stock.error';
 
 export class Sku {
   readonly id: number;
@@ -23,11 +23,11 @@ export class Sku {
 
   decreaseStock(quantity: number): void {
     if (quantity <= 0) {
-      throw new InvalidStockQuantityException();
+      throw new InvalidStockQuantityError();
     }
 
     if (this.quantity < quantity) {
-      throw new InsufficientStockException();
+      throw new InsufficientStockError();
     }
     this.quantity -= quantity;
   }
