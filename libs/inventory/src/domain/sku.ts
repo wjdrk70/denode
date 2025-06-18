@@ -27,11 +27,7 @@ export class Sku {
     }
 
     if (this.quantity < quantity) {
-      throw new InsufficientStockException({
-        skuId: this.id,
-        requested: quantity,
-        available: this.quantity,
-      });
+      throw new InsufficientStockException();
     }
     this.quantity -= quantity;
   }

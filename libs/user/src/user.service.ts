@@ -2,6 +2,7 @@ import * as bcrypt from 'bcrypt';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { USER_REPOSITORY, UserRepository } from '@app/user/domain/user.repository';
 import { User } from '@app/user/domain/user';
+import { UserAlreadyExistsException } from '@app/user/support/exception/user-already-exists.exception';
 
 @Injectable()
 export class UserService {
@@ -10,7 +11,7 @@ export class UserService {
   async createUser(dto: { email: string; password: string }): Promise<User> {
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
-      throw new ConflictException('이미 사용중인 이메일 입니다.');
+      throw new UserAlreadyExistsException();
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);

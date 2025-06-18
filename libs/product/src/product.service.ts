@@ -2,6 +2,7 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { PRODUCT_REPOSITORY, ProductRepository } from './domain/product.repository';
 import { Product } from './domain/product';
+import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
 
 @Injectable()
 export class ProductService {
@@ -10,7 +11,7 @@ export class ProductService {
   async createProduct(dto: CreateProductDto): Promise<Product> {
     const existProduct = await this.productRepository.findByName(dto.name);
     if (existProduct) {
-      throw new ConflictException('이미 존재하는 제품 이름입니다.');
+      throw new ProductNotFoundException();
     }
     const product = Product.create({ name: dto.name, description: dto.description });
 

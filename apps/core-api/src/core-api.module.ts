@@ -15,6 +15,7 @@ import { AuthController } from '@api/controller/auth.controller';
 import { ProductController } from '@api/controller/product.controller';
 import { InventoryController } from '@api/controller/inventory.controller';
 import { ProductModule } from '@app/product';
+import { StorageModule } from '@app/storage';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ProductModule } from '@app/product';
         timezone: 'Z',
       }),
     }),
+    StorageModule,
     AuthModule,
     ProductModule,
     InventoryModule,

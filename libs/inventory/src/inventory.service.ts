@@ -8,6 +8,8 @@ import { StockHistory } from '@app/inventory/domain/stock-history';
 import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
 import { STOCK_HISTORY_REPOSITORY, StockHistoryRepository } from '@app/inventory/domain/stock-history.repository';
 import { StockOutDto } from '@app/inventory/dto/stock-out.dto';
+import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
+import { SkuNotFoundException } from '@app/inventory/support/exception/sku-not-found.exception';
 
 @Injectable()
 export class InventoryService {
@@ -28,11 +30,7 @@ export class InventoryService {
 
       const sku = await this.getOrCreateSku(dto);
 
-      try {
-        sku.increaseStock(dto.quantity);
-      } catch (e) {
-        throw new BadRequestException(e.message);
-      }
+      sku.increaseStock(dto.quantity);
 
       const saveSku = await this.skuRepository.save(sku);
 
@@ -47,12 +45,7 @@ export class InventoryService {
       await this.validateProductExists(dto.productId);
 
       const sku = await this.validateSkuExists(dto.productId, dto.expirationDate);
-
-      try {
-        sku.decreaseStock(dto.quantity);
-      } catch (e) {
-        throw new BadRequestException(e.message);
-      }
+      sku.decreaseStock(dto.quantity);
 
       const saveSku = await this.skuRepository.save(sku);
 
@@ -65,14 +58,14 @@ export class InventoryService {
   private async validateProductExists(productId: number): Promise<void> {
     const exists = await this.productRepository.findById(productId);
     if (!exists) {
-      throw new NotFoundException(`제품을 찾을 수 없습니다.`);
+      throw new ProductNotFoundException();
     }
   }
 
   private async validateSkuExists(productId: number, expirationDate?: Date): Promise<Sku> {
     const sku = await this.skuRepository.findByProductIdAndExpirationDate(productId, expirationDate);
     if (!sku) {
-      throw new NotFoundException('SKU를 찾을 수 없습니다.');
+      throw new SkuNotFoundException();
     }
     return sku;
   }
