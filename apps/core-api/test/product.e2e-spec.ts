@@ -46,8 +46,6 @@ describe('ProductController (e2e)', () => {
     await productRepository.clear();
     await userRepository.clear();
 
-    await app.init();
-
     // E2E 테스트를 위한 사용자 생성 및 로그인
     await request(app.getHttpServer()).post('/auth/signup').send(userCredentials);
     const loginResponse = await request(app.getHttpServer()).post('/auth/signin').send(userCredentials);
