@@ -15,6 +15,7 @@ import { AuthController } from '@api/controller/auth.controller';
 import { ProductController } from '@api/controller/product.controller';
 import { InventoryController } from '@api/controller/inventory.controller';
 import { ProductModule } from '@app/product';
+import { ExceptionModule } from '@app/exception';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProductModule } from '@app/product';
     ProductModule,
     InventoryModule,
     TransactionModule,
+    ExceptionModule,
   ],
   controllers: [CoreApiController, AuthController, ProductController, InventoryController],
   providers: [CoreApiService],
