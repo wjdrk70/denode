@@ -1,5 +1,4 @@
 import { Sku } from '@app/inventory/domain/sku';
-import { StockHistory } from '@app/inventory/domain/stock-history';
 
 export const SKU_REPOSITORY = Symbol.for('SKU_REPOSITORY');
 

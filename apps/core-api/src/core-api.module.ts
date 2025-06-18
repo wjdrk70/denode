@@ -2,19 +2,19 @@ import * as process from 'node:process';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CoreApiController } from './contorller/core-api.controller';
+import { CoreApiController } from '@api/controller/core-api.controller';
 import { CoreApiService } from './core-api.service';
 import { AuthModule } from '@app/auth/auth.module';
 import { UserEntity } from '@app/storage/entity/user.entity';
 import { ProductEntity } from '@app/storage/entity/product.entity';
-import { ProductModule } from '../../../libs/product/src/product.module';
 import { InventoryModule } from '@app/inventory';
 import { SkuEntity } from '@app/storage/entity/sku.entity';
 import { StockHistoryEntity } from '@app/storage/entity/stock-history.entity';
 import { TransactionModule } from '@app/transaction';
-import { AuthController } from '@api/contorller/auth.controller';
-import { ProductController } from '@api/contorller/product.controller';
-import { InventoryController } from '@api/contorller/inventory.controller';
+import { AuthController } from '@api/controller/auth.controller';
+import { ProductController } from '@api/controller/product.controller';
+import { InventoryController } from '@api/controller/inventory.controller';
+import { ProductModule } from '@app/product';
 
 @Module({
   imports: [
