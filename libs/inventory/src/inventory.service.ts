@@ -9,6 +9,9 @@ import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
 import { STOCK_HISTORY_REPOSITORY, StockHistoryRepository } from '@app/inventory/domain/stock-history.repository';
 import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
 import { SkuNotFoundException } from '@app/inventory/support/exception/sku-not-found.exception';
+import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-request.dto';
+import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
+import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
 
 @Injectable()
 export class InventoryService {
@@ -22,6 +25,31 @@ export class InventoryService {
     @Inject(TRANSACTION_HANDLER)
     private readonly transactionHandler: TransactionHandler,
   ) {}
+
+  async getStock(dto: StockListRequestDto): Promise<StockListResponseDto> {
+    const [skus, total] = await this.skuRepository.findAndCount({
+      offset: dto.offset,
+      limit: dto.limit,
+    });
+
+    return new StockListResponseDto(skus, total);
+  }
+
+  async getStockHistory(skuId: number, dto: StockListRequestDto): Promise<StockHistoryListResponseDto> {
+    const sku = await this.skuRepository.findById(skuId); // SkuRepository에 findById 추가 필요
+    if (!sku) {
+      throw new SkuNotFoundException();
+    }
+
+
+    const [histories, total] = await this.stockHistoryRepository.findAndCountBySkuId(skuId, {
+      offset: dto.offset,
+      limit: dto.limit,
+    });
+
+
+    return new StockHistoryListResponseDto(histories, total);
+  }
 
   async stockInbound(dto: StockRequestDto, userId: number): Promise<Sku> {
     return this.transactionHandler.run(async () => {

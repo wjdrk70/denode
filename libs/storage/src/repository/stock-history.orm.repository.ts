@@ -15,6 +15,21 @@ export class StockHistoryOrmRepository implements StockHistoryRepository {
     private readonly contextManager: TransactionContextManager,
   ) {}
 
+  async findAndCountBySkuId(
+    skuId: number,
+    option: { offset: number; limit: number },
+  ): Promise<[StockHistory[], number]> {
+    const repository = this.getRepository();
+    const [entities, total] = await repository.findAndCount({
+      where: { skuId },
+      order: { createdAt: 'DESC' },
+      skip: option.offset,
+      take: option.limit,
+    });
+
+    return [entities.map(StockHistoryMapper.toDomain), total];
+  }
+
   async save(item: StockHistory): Promise<StockHistory> {
     const repository = this.getRepository();
     const entity = StockHistoryMapper.toEntity(item);

@@ -5,36 +5,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as request from 'supertest';
+import { createTestApp } from './test-data.setup';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let userRepository: Repository<UserEntity>;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [CoreApiModule],
-    }).compile();
+    app = await createTestApp();
 
-    app = moduleFixture.createNestApplication();
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-
-    userRepository = moduleFixture.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
+    userRepository = app.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
 
     await app.init();
   });
 
-  beforeEach(async () => {
-    await userRepository.clear();
-  });
-
   afterAll(async () => {
+    await userRepository.clear();
     await app.close();
   });
 

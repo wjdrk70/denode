@@ -16,7 +16,7 @@ export class SkuMapper {
     entity.id = domain.id;
     entity.productId = domain.productId;
     entity.quantity = domain.quantity;
-    entity.expirationDate = domain.expirationDate;
+    entity.expirationDate = domain.expirationDate ?? null;
     return entity;
   }
 }

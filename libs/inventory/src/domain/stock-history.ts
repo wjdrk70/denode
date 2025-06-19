@@ -6,6 +6,7 @@ export class StockHistory {
   readonly userId: number;
   readonly type: StockHistoryType;
   readonly quantity: number;
+  readonly createdAt: Date;
 
   constructor(args: { id?: number; skuId: number; userId: number; type: StockHistoryType; quantity: number }) {
     this.id = args.id;

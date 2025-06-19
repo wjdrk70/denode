@@ -13,6 +13,9 @@ import { StockHistory } from '@app/inventory/domain/stock-history';
 import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
 import { SkuNotFoundException } from '@app/inventory/support/exception/sku-not-found.exception';
 import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
+import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-request.dto';
+import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
+import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -46,6 +49,35 @@ describe('InventoryService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('getStockList', () => {
+    it('요청된 offset과 limit에 따라 페이지네이션된 재고 목록과 전체 개수를 반환해야 한다 ', async () => {
+      // given
+      const dto = new StockListRequestDto();
+      dto.offset = 10;
+      dto.limit = 5;
+
+      const mockSkus = [new Sku({ id: 1, productId: 1, quantity: 10 }), new Sku({ id: 2, productId: 2, quantity: 20 })];
+      const totalCount = 50;
+
+      skuRepository.findAndCount.mockResolvedValue([mockSkus, totalCount]);
+
+      // when
+      const result = await service.getStock(dto);
+
+      // then
+      expect(skuRepository.findAndCount).toHaveBeenCalledWith({
+        offset: dto.offset,
+        limit: dto.limit,
+      });
+
+      expect(result).toBeInstanceOf(StockListResponseDto);
+      expect(result.items).toHaveLength(mockSkus.length);
+      expect(result.total).toBe(totalCount);
+      expect(result.items[0].id).toBe(mockSkus[0].id);
+      expect(result.items[1].quantity).toBe(mockSkus[1].quantity);
+    });
   });
 
   describe('stockInbound', () => {
@@ -253,6 +285,50 @@ describe('InventoryService', () => {
         }),
       );
       expect(result.quantity).toBe(5);
+    });
+  });
+
+  describe('getStockHistory', () => {
+    const skuId = 1;
+    const paginationDto = new StockListRequestDto();
+    paginationDto.offset = 0;
+    paginationDto.limit = 10;
+
+    it('존재하지 않는 SKU의 히스토리를 조회하면 SkuNotFoundException을 던져야 한다', async () => {
+      // given
+
+      skuRepository.findById.mockResolvedValue(null);
+
+      // when & then
+      await expect(service.getStockHistory(skuId, paginationDto)).rejects.toThrow(new SkuNotFoundException());
+      expect(skuRepository.findById).toHaveBeenCalledWith(skuId);
+    });
+
+    it('성공적으로 특정 SKU의 입출고 히스토리를 페이지네이션하여 반환해야 한다', async () => {
+      // given
+      const mockSku = new Sku({ id: skuId, productId: 1, quantity: 100 });
+      const mockHistories = [
+        new StockHistory({ id: 1, skuId, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
+        new StockHistory({ id: 2, skuId, userId: 1, type: StockHistoryType.OUTBOUND, quantity: 5 }),
+      ];
+      const totalCount = 20;
+
+      skuRepository.findById.mockResolvedValue(mockSku);
+      stockHistoryRepository.findAndCountBySkuId.mockResolvedValue([mockHistories, totalCount]);
+
+      // when
+      const result = await service.getStockHistory(skuId, paginationDto);
+
+      // then
+      expect(skuRepository.findById).toHaveBeenCalledWith(skuId);
+      expect(stockHistoryRepository.findAndCountBySkuId).toHaveBeenCalledWith(skuId, {
+        offset: paginationDto.offset,
+        limit: paginationDto.limit,
+      });
+      expect(result).toBeInstanceOf(StockHistoryListResponseDto);
+      expect(result.total).toBe(totalCount);
+      expect(result.items).toHaveLength(mockHistories.length);
+      expect(result.items[0].type).toBe(StockHistoryType.INBOUND);
     });
   });
 });
