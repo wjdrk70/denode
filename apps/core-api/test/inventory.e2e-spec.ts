@@ -145,7 +145,7 @@ describe('InventoryController (e2e)', () => {
 
       it('성공적으로 재고를 출고하고, 남은 재고가 정확해야 한다', async () => {
         // when
-        // API 응답 본문이 없으므로(void) response를 받지 않아도 됩니다.
+
         await request(app.getHttpServer())
           .post('/inventory/outbound')
           .set('Authorization', `Bearer ${accessToken}`)
@@ -153,7 +153,7 @@ describe('InventoryController (e2e)', () => {
           .expect(201);
 
         // then
-        // DB 상태를 직접 확인하여 검증합니다.
+
         const skuInDb = await skuRepository.findOneBy({ product: { id: product.id } });
         expect(skuInDb.quantity).toBe(5); // 15 - 10 = 5
       });
@@ -178,7 +178,6 @@ describe('InventoryController (e2e)', () => {
         expect(skuInDb.quantity).toBe(0); // 15 - 10 - 5 = 0
       });
 
-      // '재고 부족' 테스트도 유사하게 수정합니다.
       it('재고 부족 시 동시 요청 중 하나는 실패해야 한다 (Race Condition 테스트)', async () => {
         // ...
         const request1 = request(app.getHttpServer())
