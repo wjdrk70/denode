@@ -3,7 +3,6 @@ import { JwtAuthGuard } from '@app/auth/guard/jwt-auth.guard';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateProductRequestDto } from '@app/product/dto/request/create-product-request.dto';
 import { ProductService } from '@app/product';
-import { Product } from '@app/product/domain/product';
 import { ProductResponseDto } from '@app/product/dto/response/product-response.dto';
 
 @Controller('product')

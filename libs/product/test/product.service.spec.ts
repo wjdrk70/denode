@@ -62,9 +62,7 @@ describe('ProductService', () => {
       (mockProductRepository.findByName as jest.Mock).mockResolvedValue(existingProduct);
 
       // when & then
-      await expect(service.createProduct(createProductDto)).rejects.toThrow(
-        new ProductAlreadyExistsException(),
-      );
+      await expect(service.createProduct(createProductDto)).rejects.toThrow(new ProductAlreadyExistsException());
       expect(productRepository.save).not.toHaveBeenCalled();
     });
   });

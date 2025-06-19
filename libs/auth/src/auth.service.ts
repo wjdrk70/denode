@@ -6,6 +6,7 @@ import { User } from '@app/user/domain/user';
 import { UserService } from '@app/user';
 import { InvalidCredentialsException } from '@app/auth/support/exception/invalid-credentials.exception';
 import { AuthCredentialRequestDto } from '@app/auth/dto/request/auth-credential-request.dto';
+import { JwtPayload } from '@app/auth/jwt.payload';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
     if (!passwordEqual) {
       throw new InvalidCredentialsException();
     }
-    const payload = { sub: user.id, email: user.email };
+    const payload: JwtPayload = { sub: user.id, email: user.email };
 
     return this.jwtService.sign(payload);
   }
