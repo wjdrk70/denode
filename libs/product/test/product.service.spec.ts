@@ -1,6 +1,6 @@
 import { PRODUCT_REPOSITORY, ProductRepository } from '@app/product/domain/product.repository';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CreateProductDto } from '@app/product/dto/create-product.dto';
+import { CreateProductRequestDto } from '@app/product/dto/request/create-product-request.dto';
 import { Product } from '@app/product/domain/product';
 import { ProductService } from '@app/product/product.service';
 import { ProductAlreadyExistsException } from '@app/product/support/exception/product-already-exists.exception';
@@ -35,7 +35,7 @@ describe('ProductService', () => {
   });
 
   describe('createProduct', () => {
-    const createProductDto: CreateProductDto = {
+    const createProductDto: CreateProductRequestDto = {
       name: '초코에몽 190ml * 10',
       description: '초코에몽 190ml unit 1',
     };

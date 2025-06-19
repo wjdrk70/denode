@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsInt, IsNotEmpty, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class StockInDto {
+export class StockRequestDto {
   @ApiProperty({ example: 1, description: '제품 ID' })
   @IsInt()
   @IsNotEmpty()
   productId: number;
 
-  @ApiProperty({ example: 100, description: '입고 수량' })
+  @ApiProperty({ example: 100, description: '입출고 수량' })
   @IsInt()
   @Min(1)
   @IsNotEmpty()

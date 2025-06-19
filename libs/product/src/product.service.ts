@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductRequestDto } from './dto/request/create-product-request.dto';
 import { PRODUCT_REPOSITORY, ProductRepository } from './domain/product.repository';
 import { Product } from './domain/product';
 import { ProductAlreadyExistsException } from '@app/product/support/exception/product-already-exists.exception';
@@ -8,7 +8,7 @@ import { ProductAlreadyExistsException } from '@app/product/support/exception/pr
 export class ProductService {
   constructor(@Inject(PRODUCT_REPOSITORY) private readonly productRepository: ProductRepository) {}
 
-  async createProduct(dto: CreateProductDto): Promise<Product> {
+  async createProduct(dto: CreateProductRequestDto): Promise<Product> {
     const existProduct = await this.productRepository.findByName(dto.name);
     if (existProduct) {
       throw new ProductAlreadyExistsException();

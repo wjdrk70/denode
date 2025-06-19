@@ -8,8 +8,7 @@ import { StockHistoryEntity } from '@app/storage/entity/stock-history.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { StockInDto } from '@app/inventory/dto/stock-in.dto';
-import { StockOutDto } from '@app/inventory/dto/stock-out.dto';
+import { StockRequestDto } from '@app/inventory/dto/request/stock-request.dto';
 
 describe('InventoryController (e2e)', () => {
   let app: INestApplication;
@@ -71,7 +70,7 @@ describe('InventoryController (e2e)', () => {
   describe('/inventory/inbound (POST)', () => {
     it('성공적으로 재고를 입고하고 201 Created를 반환해야 한다', async () => {
       // given
-      const stockInDto: StockInDto = {
+      const stockInDto: StockRequestDto = {
         productId: product.id,
         quantity: 50,
         expirationDate: new Date('2026-01-01'),
@@ -100,7 +99,7 @@ describe('InventoryController (e2e)', () => {
 
     it('기존에 있는 SKU에 재고를 추가해야 한다', async () => {
       // given:
-      const stockInDto: StockInDto = {
+      const stockInDto: StockRequestDto = {
         productId: product.id,
         quantity: 20,
         expirationDate: new Date('2026-01-01'),
@@ -126,7 +125,7 @@ describe('InventoryController (e2e)', () => {
 
     it('인증 토큰 없이 요청 시 401 Unauthorized를 반환해야 한다', () => {
       // given
-      const stockInDto: StockInDto = { productId: product.id, quantity: 10 };
+      const stockInDto: StockRequestDto = { productId: product.id, quantity: 10 };
 
       // when & then
       return request(app.getHttpServer()).post('/inventory/inbound').send(stockInDto).expect(401);
@@ -134,7 +133,7 @@ describe('InventoryController (e2e)', () => {
 
     it('유효하지 않은 데이터로 요청 시 400 Bad Request를 반환해야 한다', () => {
       // given: quantity가 0 이하
-      const invalidDto: StockInDto = { productId: product.id, quantity: 0 };
+      const invalidDto: StockRequestDto = { productId: product.id, quantity: 0 };
 
       // when & then
       return request(app.getHttpServer())
@@ -146,7 +145,7 @@ describe('InventoryController (e2e)', () => {
 
     it('존재하지 않는 제품 ID로 요청 시 404 Not Found를 반환해야 한다', () => {
       // given
-      const stockInDto: StockInDto = { productId: 999, quantity: 10 };
+      const stockInDto: StockRequestDto = { productId: 999, quantity: 10 };
 
       // when & then
       return request(app.getHttpServer())
@@ -158,11 +157,11 @@ describe('InventoryController (e2e)', () => {
   });
 
   describe('/inventory/outbound (POST)', () => {
-    let stockOutDto: StockOutDto;
+    let stockOutDto: StockRequestDto;
 
     beforeEach(async () => {
       // 각 출고 테스트 전에 재고를 15개로 설정
-      const stockInDto: StockInDto = {
+      const stockInDto: StockRequestDto = {
         productId: product.id,
         quantity: 15,
         expirationDate: new Date('2026-01-01'),

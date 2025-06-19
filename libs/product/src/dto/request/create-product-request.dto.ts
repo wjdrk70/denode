@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateProductDto {
+export class CreateProductRequestDto {
   @ApiProperty({ example: '초코에몽 190ml * 10개', description: '제품 이름' })
   @IsString()
   @IsNotEmpty()

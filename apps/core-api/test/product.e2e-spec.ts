@@ -6,7 +6,7 @@ import { ProductEntity } from '@app/storage/entity/product.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CreateProductDto } from '@app/product/dto/create-product.dto';
+import { CreateProductRequestDto } from '@app/product/dto/request/create-product-request.dto';
 
 describe('ProductController (e2e)', () => {
   let app: INestApplication;
@@ -57,7 +57,7 @@ describe('ProductController (e2e)', () => {
   });
 
   describe('/product (POST)', () => {
-    const createProductDto: CreateProductDto = {
+    const createProductDto: CreateProductRequestDto = {
       name: '초코에몽 190ml * 10',
       description: '초코에몽 190ml unit 1',
     };
