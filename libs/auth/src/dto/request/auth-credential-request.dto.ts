@@ -7,7 +7,7 @@ export class AuthCredentialRequestDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: '1234', description: '사용자 비밀번호 (8자 이상)' })
+  @ApiProperty({ example: 'password1234', description: '사용자 비밀번호 (8자 이상)' })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)

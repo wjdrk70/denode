@@ -1,4 +1,4 @@
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { InventoryService } from '@app/inventory';
 import { JwtAuthGuard } from '@app/auth/guard/jwt-auth.guard';
@@ -9,12 +9,13 @@ import { Request } from 'express';
 import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
 import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-request.dto';
 import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
+import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
+import { OutboundRequestDto } from '@app/inventory/dto/request/outbound-request.dto';
 
 @ApiTags('inventory 재고')
 @Controller('inventory')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
-
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -28,18 +29,17 @@ export class InventoryController {
     return this.inventoryService.getStock(dto);
   }
 
-  @Get(':skuId/history')
+  @Get(':productId/history')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '특정 재고의 입출고 히스토리 조회' })
+  @ApiOperation({ summary: '특정 제품의 재고 히스토리 조회' })
+  @ApiParam({ name: 'productId', description: '제품 ID', type: Number })
   @ApiResponse({ status: 200, description: '조회 성공', type: StockHistoryListResponseDto })
-  @ApiResponse({ status: 401, description: '인증 실패' })
-  @ApiResponse({ status: 404, description: '존재하지 않는 SKU' })
   async getStockHistory(
-    @Param('skuId', ParseIntPipe) skuId: number,
-    @Query() dto: StockListRequestDto,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Query() dto: StockHistoryRequestDto,
   ): Promise<StockHistoryListResponseDto> {
-    return this.inventoryService.getStockHistory(skuId, dto);
+    return this.inventoryService.getStockHistory(productId, dto);
   }
 
   @Post('inbound')
@@ -60,15 +60,17 @@ export class InventoryController {
   @Post('outbound')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '재고 출고', description: '제품 재고를 출고 처리합니다.' })
-  @ApiBody({ type: StockRequestDto })
+  @ApiOperation({
+    summary: '재고 출고 (FEFO 적용)',
+    description: '제품 ID와 수량만으로 유통기한 임박순으로 재고를 출고합니다.',
+  })
+  @ApiBody({ type: OutboundRequestDto })
   @ApiResponse({ status: 201, description: '재고 출고 성공', type: Sku })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터 (재고 부족 등)' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 404, description: '존재하지 않는 제품 또는 SKU' })
-  async stockOutbound(@Body() dto: StockRequestDto, @Req() req: Request): Promise<StockResponseDto> {
+  async stockOutbound(@Body() dto: OutboundRequestDto, @Req() req: Request): Promise<any> {
     const userId = (req.user as any).userId;
-    const sku = await this.inventoryService.stockOutbound(dto, userId);
-    return new StockResponseDto(sku);
+    return await this.inventoryService.stockOutbound(dto, userId);
   }
 }

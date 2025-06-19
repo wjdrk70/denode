@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from '@app/storage/entity/user.entity';
 import { ProductEntity } from '@app/storage/entity/product.entity';

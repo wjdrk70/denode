@@ -16,6 +16,7 @@ import { InsufficientStockException } from '@app/inventory/support/exception/ins
 import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-request.dto';
 import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
 import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
+import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -107,11 +108,6 @@ describe('InventoryService', () => {
 
     it('새로운 재고 아이템을 성공적으로 입고 처리해야 한다', async () => {
       // given
-      const newSku = Sku.create({
-        productId: stockInDto.productId,
-        quantity: 0,
-        expirationDate: stockInDto.expirationDate,
-      });
 
       const savedSku = new Sku({
         id: 1,
@@ -255,7 +251,6 @@ describe('InventoryService', () => {
       // given
       const initialQuantity = 10;
       const outboundQuantity = 5;
-      const finalQuantity = initialQuantity - outboundQuantity;
 
       const existingSku = new Sku({
         id: 1,
@@ -289,46 +284,98 @@ describe('InventoryService', () => {
   });
 
   describe('getStockHistory', () => {
-    const skuId = 1;
-    const paginationDto = new StockListRequestDto();
+    const productId = 1;
+    const paginationDto = new StockHistoryRequestDto(); // 요청하신 DTO 이름으로 변경
     paginationDto.offset = 0;
     paginationDto.limit = 10;
 
-    it('존재하지 않는 SKU의 히스토리를 조회하면 SkuNotFoundException을 던져야 한다', async () => {
-      // given
+    const mockProduct = new Product({ id: productId, name: 'Test Product' });
+    const mockSkus = [
+      new Sku({ id: 10, productId, quantity: 10, expirationDate: new Date('2025-01-01') }),
+      new Sku({ id: 11, productId, quantity: 20 }), // 유통기한 없는 SKU
+    ];
+    const mockSkuIds = mockSkus.map((sku) => sku.id);
 
-      skuRepository.findById.mockResolvedValue(null);
+    it('제품이 존재하지 않으면 ProductNotFoundException을 던져야 한다', async () => {
+      // given
+      productRepository.findById.mockResolvedValue(null);
 
       // when & then
-      await expect(service.getStockHistory(skuId, paginationDto)).rejects.toThrow(new SkuNotFoundException());
-      expect(skuRepository.findById).toHaveBeenCalledWith(skuId);
+      await expect(service.getStockHistory(productId, paginationDto)).rejects.toThrow(new ProductNotFoundException());
+      expect(productRepository.findById).toHaveBeenCalledWith(productId);
     });
 
-    it('성공적으로 특정 SKU의 입출고 히스토리를 페이지네이션하여 반환해야 한다', async () => {
+    it('성공적으로 특정 제품의 전체 재고 히스토리를 페이지네이션하여 반환해야 한다', async () => {
       // given
-      const mockSku = new Sku({ id: skuId, productId: 1, quantity: 100 });
       const mockHistories = [
-        new StockHistory({ id: 1, skuId, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
-        new StockHistory({ id: 2, skuId, userId: 1, type: StockHistoryType.OUTBOUND, quantity: 5 }),
+        new StockHistory({ id: 1, skuId: 10, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
+        new StockHistory({ id: 2, skuId: 11, userId: 1, type: StockHistoryType.INBOUND, quantity: 20 }),
       ];
-      const totalCount = 20;
+      const totalCount = 15;
 
-      skuRepository.findById.mockResolvedValue(mockSku);
-      stockHistoryRepository.findAndCountBySkuId.mockResolvedValue([mockHistories, totalCount]);
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductId.mockResolvedValue(mockSkus);
+      stockHistoryRepository.findAndCountBySkuIds.mockResolvedValue([mockHistories, totalCount]);
 
       // when
-      const result = await service.getStockHistory(skuId, paginationDto);
+      const result = await service.getStockHistory(productId, paginationDto);
 
       // then
-      expect(skuRepository.findById).toHaveBeenCalledWith(skuId);
-      expect(stockHistoryRepository.findAndCountBySkuId).toHaveBeenCalledWith(skuId, {
+      expect(productRepository.findById).toHaveBeenCalledWith(productId);
+      expect(skuRepository.findByProductId).toHaveBeenCalledWith(productId);
+      expect(stockHistoryRepository.findAndCountBySkuIds).toHaveBeenCalledWith(mockSkuIds, {
         offset: paginationDto.offset,
         limit: paginationDto.limit,
       });
       expect(result).toBeInstanceOf(StockHistoryListResponseDto);
       expect(result.total).toBe(totalCount);
       expect(result.items).toHaveLength(mockHistories.length);
-      expect(result.items[0].type).toBe(StockHistoryType.INBOUND);
+    });
+
+    it('유통기한으로 필터링하여 특정 SKU의 히스토리만 반환해야 한다', async () => {
+      // given
+      const specificSku = mockSkus[0]; // 유통기한이 있는 첫 번째 SKU
+      const filteredDto = new StockHistoryRequestDto();
+      filteredDto.expirationDate = specificSku.expirationDate;
+
+      const mockHistories = [
+        new StockHistory({ id: 1, skuId: specificSku.id, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
+      ];
+      const totalCount = 1;
+
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(specificSku);
+      stockHistoryRepository.findAndCountBySkuIds.mockResolvedValue([mockHistories, totalCount]);
+
+      // when
+      const result = await service.getStockHistory(productId, filteredDto);
+
+      // then
+      expect(skuRepository.findByProductIdAndExpirationDate).toHaveBeenCalledWith(
+        productId,
+        filteredDto.expirationDate,
+      );
+      // findAndCountBySkuIds가 필터링된 SKU의 ID 배열로 호출되었는지 검증
+      expect(stockHistoryRepository.findAndCountBySkuIds).toHaveBeenCalledWith([specificSku.id], {
+        offset: filteredDto.offset,
+        limit: filteredDto.limit,
+      });
+      expect(result.total).toBe(totalCount);
+      expect(result.items.length).toBe(1);
+    });
+
+    it('제품은 있지만 SKU가 없는 경우 빈 배열을 반환해야 한다', async () => {
+      // given
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductId.mockResolvedValue([]); // 빈 배열을 반환
+
+      // when
+      const result = await service.getStockHistory(productId, paginationDto);
+
+      // then
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(stockHistoryRepository.findAndCountBySkuIds).not.toHaveBeenCalled();
     });
   });
 });

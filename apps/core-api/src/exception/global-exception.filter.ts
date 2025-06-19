@@ -54,4 +54,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({ statusCode: status, errorCode, message });
   }
+
+  // catch(error: any, host: ArgumentsHost) {
+  //   // --- 디버깅을 위한 코드 ---
+  //   console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  //   console.error('!!     RAW ERROR OBJECT START     !!');
+  //   console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  //
+  //   console.error(error); // 여기서 실제 에러 객체 전체를 출력합니다.
+  //
+  //   console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  //   console.error('!!      RAW ERROR OBJECT END      !!');
+  //   console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  //   // --- 디버깅 종료 ---
+  //
+  //   const ctx = host.switchToHttp();
+  //   const response = ctx.getResponse<Response>();
+  //
+  //   // 클라이언트에게는 간단한 응답만 보냅니다.
+  //   response.status(500).json({
+  //     statusCode: 500,
+  //     message: 'An internal server error occurred. Check the console logs for details.',
+  //     error: 'Internal Server Error',
+  //   });
+  // }
 }

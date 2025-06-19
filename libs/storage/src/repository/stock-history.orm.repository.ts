@@ -3,7 +3,7 @@ import { StockHistoryRepository } from '@app/inventory/domain/stock-history.repo
 import { StockHistory } from '@app/inventory/domain/stock-history';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StockHistoryEntity } from '@app/storage/entity/stock-history.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { TransactionContextManager } from '@app/storage/transaction/transaction-context-manager';
 import { StockHistoryMapper } from '@app/storage/mapper/stock-history.mapper';
 
@@ -22,6 +22,24 @@ export class StockHistoryOrmRepository implements StockHistoryRepository {
     const repository = this.getRepository();
     const [entities, total] = await repository.findAndCount({
       where: { skuId },
+      order: { createdAt: 'DESC' },
+      skip: option.offset,
+      take: option.limit,
+    });
+
+    return [entities.map(StockHistoryMapper.toDomain), total];
+  }
+
+  async findAndCountBySkuIds(
+    skuIds: number[],
+    option: {
+      offset: number;
+      limit: number;
+    },
+  ): Promise<[StockHistory[], number]> {
+    const repository = this.getRepository();
+    const [entities, total] = await repository.findAndCount({
+      where: { skuId: In(skuIds) }, // IN 절을 사용하여 여러 SKU ID로 조회
       order: { createdAt: 'DESC' },
       skip: option.offset,
       take: option.limit,

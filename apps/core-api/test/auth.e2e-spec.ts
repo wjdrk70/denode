@@ -1,8 +1,6 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from '@app/storage/entity/user.entity';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as request from 'supertest';
 import { createTestApp } from './test-data.setup';
@@ -29,7 +27,7 @@ describe('AuthController (e2e)', () => {
 
     it('성공적으로 회원가입을 하고 201 Created를 반환해야 한다', async () => {
       // act
-      const response = await request(app.getHttpServer()).post('/auth/signup').send(signUpDto).expect(201); // Assert: 상태 코드를 검증합니다.
+      await request(app.getHttpServer()).post('/auth/signup').send(signUpDto).expect(201); // Assert: 상태 코드를 검증합니다.
 
       // assert
       const userInDb = await userRepository.findOneBy({ email: signUpDto.email });

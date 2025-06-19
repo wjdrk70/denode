@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreApiModule } from '@api/core-api.module';
+import { ProductEntity } from '@app/storage/entity/product.entity';
 
 export async function createTestApp(): Promise<INestApplication> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,7 +47,7 @@ export async function createTestProduct(app: INestApplication, token: string, co
 export async function createTestSku(
   app: INestApplication,
   token: string,
-  products: any[],
+  products: ProductEntity[],
   options: { datedCount: number; nullExpirationCount: number },
 ) {
   // 유통기한 있는 SKU 생성

@@ -8,4 +8,6 @@ export interface StockHistoryRepository {
   findBySkuId(skuId: number): Promise<StockHistory[]>;
 
   findAndCountBySkuId(skuId: number, option: { offset: number; limit: number }): Promise<[StockHistory[], number]>;
+
+  findAndCountBySkuIds(skuIds: number[], option: { offset: number; limit: number }): Promise<[StockHistory[], number]>;
 }
