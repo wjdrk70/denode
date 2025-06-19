@@ -15,5 +15,7 @@ export interface SkuRepository {
 
   findAndCount(option: { offset: number; limit: number }): Promise<[Sku[], number]>;
 
+  sumQuantityByProductId(productId: number): Promise<number>;
+
   save(item: Sku): Promise<Sku>;
 }

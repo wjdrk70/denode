@@ -58,7 +58,7 @@ describe('InventoryController (e2e)', () => {
           .post('/inventory/inbound')
           .set('Authorization', `Bearer ${accessToken}`)
           .send(stockInDto)
-          .expect(201);
+          .expect(200);
       });
 
       it('기존에 있는 SKU에 재고를 추가해야 한다', async () => {
@@ -78,7 +78,7 @@ describe('InventoryController (e2e)', () => {
           .post('/inventory/inbound')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({ ...stockInDto, quantity: 30 })
-          .expect(201);
+          .expect(200);
 
         // then
         expect(response.body.quantity).toBe(50);
@@ -150,7 +150,7 @@ describe('InventoryController (e2e)', () => {
           .post('/inventory/outbound')
           .set('Authorization', `Bearer ${accessToken}`)
           .send(outboundDto) // 수정된 DTO 사용
-          .expect(201);
+          .expect(200);
 
         // then
 
@@ -192,9 +192,8 @@ describe('InventoryController (e2e)', () => {
 
         const [response1, response2] = await Promise.all([request1, request2]);
 
-        // 하나의 요청은 성공(201), 다른 하나는 실패(400 - InsufficientStockException)해야 함
         const statuses = [response1.status, response2.status].sort();
-        expect(statuses).toEqual([201, 400]);
+        expect(statuses).toEqual([200, 400]);
 
         const skuInDb = await skuRepository.findOneBy({ product: { id: product.id } });
         expect([5, 7]).toContain(skuInDb.quantity); // 성공한 요청에 따라 5 또는 7이 남음

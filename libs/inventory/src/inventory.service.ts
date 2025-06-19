@@ -15,6 +15,7 @@ import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-h
 import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
 import { OutboundRequestDto } from '@app/inventory/dto/request/outbound-request.dto';
 import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
+import { OutboundResponseDto } from '@app/inventory/dto/response/outbound-response.dto';
 
 @Injectable()
 export class InventoryService {
@@ -83,15 +84,14 @@ export class InventoryService {
     });
   }
 
-  async stockOutbound(dto: OutboundRequestDto, userId: number): Promise<void> {
+  async stockOutbound(dto: OutboundRequestDto, userId: number): Promise<OutboundResponseDto> {
     return this.transactionHandler.run(async () => {
-      // 1. 제품 존재 여부 확인
       await this.validateProductExists(dto.productId);
 
-      // 2. 출고할 제품의 SKU들을 FEFO 순서로, 비관적 락을 걸어 조회
+      //출고할 제품의 SKU들을 FEFO 순서로, 비관적 락을 걸어 조회
       const skusToShipFrom = await this.skuRepository.findForUpdateByProductId(dto.productId);
 
-      // 3. 전체 재고량 확인
+      // 전체 재고량 확인
       const totalStock = skusToShipFrom.reduce((sum, sku) => sum + sku.quantity, 0);
       if (totalStock < dto.quantity) {
         throw new InsufficientStockException();
@@ -113,6 +113,11 @@ export class InventoryService {
           remainingQuantityToShip -= quantityToDecrease;
         }
       }
+      const totalRemainingQuantity = await this.skuRepository.sumQuantityByProductId(dto.productId);
+      return {
+        productId: dto.productId,
+        totalRemainingQuantity: totalRemainingQuantity,
+      };
     });
   }
 

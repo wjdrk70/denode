@@ -17,6 +17,7 @@ import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-reque
 import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
 import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
 import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
+import { OutboundRequestDto } from '@app/inventory/dto/request/outbound-request.dto';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -221,65 +222,68 @@ describe('InventoryService', () => {
       expect(productRepository.findById).toHaveBeenCalledWith(stockOutDto.productId);
     });
 
-    it('SKU가 없으면 SkuNotFoundException 던져야 한다', async () => {
-      // given
-      productRepository.findById.mockResolvedValue(product);
-      skuRepository.findForUpdate.mockResolvedValue(null);
-
-      // when & then
-      await expect(service.stockOutbound(stockOutDto, userId)).rejects.toThrow(new SkuNotFoundException());
-      expect(transactionHandler.run).toHaveBeenCalledTimes(1);
-    });
-
     it('재고가 부족하면 InsufficientStockError 던져야 한다', async () => {
       // given
-      const existingSku = new Sku({
-        id: 1,
-        productId: stockOutDto.productId,
-        quantity: 3, // 출고 수량보다 적은 재고
-        expirationDate: stockOutDto.expirationDate,
-      });
+      const stockOutDto: OutboundRequestDto = {
+        productId: 1,
+        quantity: 10, // 10개 출고 요청
+      };
+      // 제품에 속한 SKU들의 총 재고가 5개뿐인 상황을 모킹
+      const existingSkus = [
+        new Sku({ id: 1, productId: 1, quantity: 3 }),
+        new Sku({ id: 2, productId: 1, quantity: 2 }),
+      ];
+
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findForUpdate.mockResolvedValue(existingSku);
+      // 👇 변경된 서비스 로직에 맞게 findForUpdateByProductId를 모킹하고, SKU 배열을 반환합니다.
+      skuRepository.findForUpdateByProductId.mockResolvedValue(existingSkus);
 
       // when & then
+      // InsufficientStockException이 발생하는지 확인합니다.
       await expect(service.stockOutbound(stockOutDto, userId)).rejects.toThrow(new InsufficientStockException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
+      expect(skuRepository.save).not.toHaveBeenCalled(); // 재고 부족 시 save는 호출되지 않아야 함
     });
 
-    it('성공적으로 재고를 출고해야 한다', async () => {
+    it('성공적으로 재고를 출고하고, 제품 ID와 남은 재고량을 반환해야 한다', async () => {
       // given
       const initialQuantity = 10;
       const outboundQuantity = 5;
+      const remainingQuantity = initialQuantity - outboundQuantity;
 
       const existingSku = new Sku({
         id: 1,
         productId: stockOutDto.productId,
-        quantity: 10,
-        expirationDate: stockOutDto.expirationDate,
+        quantity: initialQuantity,
+        // expirationDate는 OutboundRequestDto에 없으므로, 테스트 데이터에서도 제거하거나 무관하게 처리
       });
 
-      const updatedSku = new Sku({ ...existingSku, quantity: 5 });
-
+      // findForUpdateByProductId가 FEFO 정렬된 SKU 목록을 반환하도록 설정
       productRepository.findById.mockResolvedValue(product);
-      skuRepository.findForUpdate.mockResolvedValue(existingSku);
-      skuRepository.save.mockResolvedValue(updatedSku);
+      skuRepository.findForUpdateByProductId.mockResolvedValue([existingSku]);
+      skuRepository.save.mockResolvedValue(new Sku({ ...existingSku, quantity: remainingQuantity }));
+
+      // sumQuantityByProductId 메소드의 반환값을 모킹합니다.
+      skuRepository.sumQuantityByProductId.mockResolvedValue(remainingQuantity);
 
       // when
       const result = await service.stockOutbound(stockOutDto, userId);
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
-      expect(skuRepository.findForUpdate).toHaveBeenCalledWith(stockOutDto.productId, stockOutDto.expirationDate);
-      expect(skuRepository.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: 5 }));
+      expect(skuRepository.findForUpdateByProductId).toHaveBeenCalledWith(stockOutDto.productId);
+      expect(skuRepository.save).toHaveBeenCalledWith(expect.objectContaining({ quantity: remainingQuantity }));
       expect(stockHistoryRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           skuId: existingSku.id,
           type: StockHistoryType.OUTBOUND,
-          quantity: 5,
+          quantity: outboundQuantity,
         }),
       );
-      expect(result.quantity).toBe(5);
+
+      expect(result).toBeDefined();
+      expect(result.productId).toBe(stockOutDto.productId);
+      expect(result.totalRemainingQuantity).toBe(remainingQuantity);
     });
   });
 

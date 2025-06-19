@@ -1,5 +1,17 @@
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { InventoryService } from '@app/inventory';
 import { JwtAuthGuard } from '@app/auth/guard/jwt-auth.guard';
 import { StockRequestDto } from '@app/inventory/dto/request/stock-request.dto';
@@ -11,6 +23,7 @@ import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-reque
 import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
 import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
 import { OutboundRequestDto } from '@app/inventory/dto/request/outbound-request.dto';
+import { OutboundResponseDto } from '@app/inventory/dto/response/outbound-response.dto';
 
 @ApiTags('inventory 재고')
 @Controller('inventory')
@@ -44,10 +57,11 @@ export class InventoryController {
 
   @Post('inbound')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: '재고 입고', description: '제품 재고를 입고 처리합니다.' })
   @ApiBody({ type: StockRequestDto })
-  @ApiResponse({ status: 201, description: '재고 입고 성공', type: Sku })
+  @ApiResponse({ status: 200, description: '재고 입고 성공', type: Sku })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 404, description: '존재하지 않는 제품' })
@@ -59,6 +73,7 @@ export class InventoryController {
 
   @Post('outbound')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '재고 출고 (FEFO 적용)',
@@ -69,8 +84,9 @@ export class InventoryController {
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터 (재고 부족 등)' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 404, description: '존재하지 않는 제품 또는 SKU' })
-  async stockOutbound(@Body() dto: OutboundRequestDto, @Req() req: Request): Promise<any> {
+  async stockOutbound(@Body() dto: OutboundRequestDto, @Req() req: Request): Promise<OutboundResponseDto> {
     const userId = (req.user as any).userId;
-    return await this.inventoryService.stockOutbound(dto, userId);
+    const result = await this.inventoryService.stockOutbound(dto, userId);
+    return new OutboundResponseDto(result.productId, result.totalRemainingQuantity);
   }
 }

@@ -114,6 +114,17 @@ export class SkuOrmRepository implements SkuRepository {
     return entities.map(SkuMapper.toDomain);
   }
 
+  async sumQuantityByProductId(productId: number): Promise<number> {
+    const repository = this.getRepository();
+    const result = await repository
+      .createQueryBuilder('sku')
+      .select('SUM(sku.quantity)', 'total')
+      .where('sku.product.id = :productId', { productId })
+      .getRawOne();
+    // 결과가 없을 경우 0을 반환하도록 처리
+    return parseInt(result?.total, 10) || 0;
+  }
+
   async save(item: Sku): Promise<Sku> {
     const repository = this.getRepository();
 
