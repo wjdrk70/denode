@@ -93,7 +93,7 @@ describe('AuthService', () => {
       expect(userService.findOneByEmail).toHaveBeenCalledWith(signInDto.email);
       expect(bcrypt.compare).toHaveBeenCalledWith(signInDto.password, user.password);
       expect(jwtService.sign).toHaveBeenCalledWith({ sub: user.id, email: user.email });
-      expect(result).toEqual({ accessToken });
+      expect(result).toEqual(accessToken);
     });
   });
 });

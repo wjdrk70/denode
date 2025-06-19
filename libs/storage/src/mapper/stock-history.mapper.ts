@@ -7,6 +7,7 @@ export class StockHistoryMapper {
       id: entity.id,
       skuId: entity.skuId,
       type: entity.type,
+      userId: entity.userId,
       quantity: entity.quantity,
     });
   }
@@ -15,6 +16,7 @@ export class StockHistoryMapper {
     const entity = new StockHistoryEntity();
     entity.id = domain.id;
     entity.skuId = domain.skuId;
+    entity.userId = domain.userId;
     entity.type = domain.type;
     entity.quantity = domain.quantity;
 

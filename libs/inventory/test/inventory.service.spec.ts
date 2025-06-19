@@ -1,6 +1,6 @@
 import { InventoryService } from '@app/inventory';
 import { Test, TestingModule } from '@nestjs/testing';
-import { StockInDto } from '@app/inventory/dto/stock-in.dto';
+import { StockRequestDto } from '@app/inventory/dto/request/stock-request.dto';
 import { Product } from '@app/product/domain/product';
 import { createMock } from '@golevelup/ts-jest';
 import { StockHistoryType } from '@app/inventory/domain/stock-history.type';
@@ -10,10 +10,13 @@ import { PRODUCT_REPOSITORY, ProductRepository } from '@app/product/domain/produ
 import { TRANSACTION_HANDLER, TransactionHandler } from '@app/transaction/transaction-handler';
 import { Sku } from '@app/inventory/domain/sku';
 import { StockHistory } from '@app/inventory/domain/stock-history';
-import { StockOutDto } from '@app/inventory/dto/stock-out.dto';
 import { ProductNotFoundException } from '@app/product/support/exception/product-not-found.exception';
 import { SkuNotFoundException } from '@app/inventory/support/exception/sku-not-found.exception';
 import { InsufficientStockException } from '@app/inventory/support/exception/insufficient-stock.exception';
+import { StockListRequestDto } from '@app/inventory/dto/request/stock-list-request.dto';
+import { StockListResponseDto } from '@app/inventory/dto/response/stock-list-response.dto';
+import { StockHistoryListResponseDto } from '@app/inventory/dto/response/stock-history-list.response.dto';
+import { StockHistoryRequestDto } from '@app/inventory/dto/request/stock-history-request.dto';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -49,8 +52,39 @@ describe('InventoryService', () => {
     jest.clearAllMocks();
   });
 
+  describe('getStockList', () => {
+    it('요청된 offset과 limit에 따라 페이지네이션된 재고 목록과 전체 개수를 반환해야 한다 ', async () => {
+      // given
+      const dto = new StockListRequestDto();
+      dto.offset = 10;
+      dto.limit = 5;
+
+      const mockSkus = [new Sku({ id: 1, productId: 1, quantity: 10 }), new Sku({ id: 2, productId: 2, quantity: 20 })];
+      const totalCount = 50;
+
+      skuRepository.findAndCount.mockResolvedValue([mockSkus, totalCount]);
+
+      // when
+      const result = await service.getStock(dto);
+
+      // then
+      expect(skuRepository.findAndCount).toHaveBeenCalledWith({
+        offset: dto.offset,
+        limit: dto.limit,
+      });
+
+      expect(result).toBeInstanceOf(StockListResponseDto);
+      expect(result.items).toHaveLength(mockSkus.length);
+      expect(result.total).toBe(totalCount);
+      expect(result.items[0].id).toBe(mockSkus[0].id);
+      expect(result.items[1].quantity).toBe(mockSkus[1].quantity);
+    });
+  });
+
   describe('stockInbound', () => {
-    const stockInDto: StockInDto = {
+    const userId = 101;
+
+    const stockInDto: StockRequestDto = {
       productId: 1,
       quantity: 10,
       expirationDate: new Date('2025-12-31'),
@@ -66,7 +100,7 @@ describe('InventoryService', () => {
       productRepository.findById.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockInbound(stockInDto)).rejects.toThrow(new ProductNotFoundException());
+      await expect(service.stockInbound(stockInDto, userId)).rejects.toThrow(new ProductNotFoundException());
 
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(productRepository.findById).toHaveBeenCalledWith(1);
@@ -74,11 +108,6 @@ describe('InventoryService', () => {
 
     it('새로운 재고 아이템을 성공적으로 입고 처리해야 한다', async () => {
       // given
-      const newSku = Sku.create({
-        productId: stockInDto.productId,
-        quantity: 0,
-        expirationDate: stockInDto.expirationDate,
-      });
 
       const savedSku = new Sku({
         id: 1,
@@ -92,7 +121,7 @@ describe('InventoryService', () => {
       skuRepository.save.mockResolvedValue(savedSku);
 
       // when
-      const result = await service.stockInbound(stockInDto);
+      const result = await service.stockInbound(stockInDto, userId);
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
@@ -130,6 +159,7 @@ describe('InventoryService', () => {
         skuId: 1,
         type: StockHistoryType.INBOUND,
         quantity: stockInDto.quantity,
+        userId,
       });
 
       productRepository.findById.mockResolvedValue(product);
@@ -138,7 +168,7 @@ describe('InventoryService', () => {
       stockHistoryRepository.save.mockResolvedValue(savedStockHistory);
 
       // when
-      const result = await service.stockInbound(stockInDto);
+      const result = await service.stockInbound(stockInDto, userId);
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
@@ -161,7 +191,7 @@ describe('InventoryService', () => {
       skuRepository.save.mockRejectedValue(new Error('Database error'));
 
       // when & then
-      await expect(service.stockInbound(stockInDto)).rejects.toThrow('Database error');
+      await expect(service.stockInbound(stockInDto, userId)).rejects.toThrow('Database error');
 
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(stockHistoryRepository.save).not.toHaveBeenCalled();
@@ -169,7 +199,8 @@ describe('InventoryService', () => {
   });
 
   describe('stockOutbound', () => {
-    const stockOutDto: StockOutDto = {
+    const userId = 102;
+    const stockOutDto: StockRequestDto = {
       productId: 1,
       quantity: 5,
       expirationDate: new Date('2025-12-31'),
@@ -185,7 +216,7 @@ describe('InventoryService', () => {
       productRepository.findById.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new ProductNotFoundException());
+      await expect(service.stockOutbound(stockOutDto, userId)).rejects.toThrow(new ProductNotFoundException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
       expect(productRepository.findById).toHaveBeenCalledWith(stockOutDto.productId);
     });
@@ -196,7 +227,7 @@ describe('InventoryService', () => {
       skuRepository.findForUpdate.mockResolvedValue(null);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new SkuNotFoundException());
+      await expect(service.stockOutbound(stockOutDto, userId)).rejects.toThrow(new SkuNotFoundException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
     });
 
@@ -212,7 +243,7 @@ describe('InventoryService', () => {
       skuRepository.findForUpdate.mockResolvedValue(existingSku);
 
       // when & then
-      await expect(service.stockOutbound(stockOutDto)).rejects.toThrow(new InsufficientStockException());
+      await expect(service.stockOutbound(stockOutDto, userId)).rejects.toThrow(new InsufficientStockException());
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
     });
 
@@ -220,7 +251,6 @@ describe('InventoryService', () => {
       // given
       const initialQuantity = 10;
       const outboundQuantity = 5;
-      const finalQuantity = initialQuantity - outboundQuantity;
 
       const existingSku = new Sku({
         id: 1,
@@ -236,7 +266,7 @@ describe('InventoryService', () => {
       skuRepository.save.mockResolvedValue(updatedSku);
 
       // when
-      const result = await service.stockOutbound(stockOutDto);
+      const result = await service.stockOutbound(stockOutDto, userId);
 
       // then
       expect(transactionHandler.run).toHaveBeenCalledTimes(1);
@@ -250,6 +280,102 @@ describe('InventoryService', () => {
         }),
       );
       expect(result.quantity).toBe(5);
+    });
+  });
+
+  describe('getStockHistory', () => {
+    const productId = 1;
+    const paginationDto = new StockHistoryRequestDto(); // 요청하신 DTO 이름으로 변경
+    paginationDto.offset = 0;
+    paginationDto.limit = 10;
+
+    const mockProduct = new Product({ id: productId, name: 'Test Product' });
+    const mockSkus = [
+      new Sku({ id: 10, productId, quantity: 10, expirationDate: new Date('2025-01-01') }),
+      new Sku({ id: 11, productId, quantity: 20 }), // 유통기한 없는 SKU
+    ];
+    const mockSkuIds = mockSkus.map((sku) => sku.id);
+
+    it('제품이 존재하지 않으면 ProductNotFoundException을 던져야 한다', async () => {
+      // given
+      productRepository.findById.mockResolvedValue(null);
+
+      // when & then
+      await expect(service.getStockHistory(productId, paginationDto)).rejects.toThrow(new ProductNotFoundException());
+      expect(productRepository.findById).toHaveBeenCalledWith(productId);
+    });
+
+    it('성공적으로 특정 제품의 전체 재고 히스토리를 페이지네이션하여 반환해야 한다', async () => {
+      // given
+      const mockHistories = [
+        new StockHistory({ id: 1, skuId: 10, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
+        new StockHistory({ id: 2, skuId: 11, userId: 1, type: StockHistoryType.INBOUND, quantity: 20 }),
+      ];
+      const totalCount = 15;
+
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductId.mockResolvedValue(mockSkus);
+      stockHistoryRepository.findAndCountBySkuIds.mockResolvedValue([mockHistories, totalCount]);
+
+      // when
+      const result = await service.getStockHistory(productId, paginationDto);
+
+      // then
+      expect(productRepository.findById).toHaveBeenCalledWith(productId);
+      expect(skuRepository.findByProductId).toHaveBeenCalledWith(productId);
+      expect(stockHistoryRepository.findAndCountBySkuIds).toHaveBeenCalledWith(mockSkuIds, {
+        offset: paginationDto.offset,
+        limit: paginationDto.limit,
+      });
+      expect(result).toBeInstanceOf(StockHistoryListResponseDto);
+      expect(result.total).toBe(totalCount);
+      expect(result.items).toHaveLength(mockHistories.length);
+    });
+
+    it('유통기한으로 필터링하여 특정 SKU의 히스토리만 반환해야 한다', async () => {
+      // given
+      const specificSku = mockSkus[0]; // 유통기한이 있는 첫 번째 SKU
+      const filteredDto = new StockHistoryRequestDto();
+      filteredDto.expirationDate = specificSku.expirationDate;
+
+      const mockHistories = [
+        new StockHistory({ id: 1, skuId: specificSku.id, userId: 1, type: StockHistoryType.INBOUND, quantity: 10 }),
+      ];
+      const totalCount = 1;
+
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductIdAndExpirationDate.mockResolvedValue(specificSku);
+      stockHistoryRepository.findAndCountBySkuIds.mockResolvedValue([mockHistories, totalCount]);
+
+      // when
+      const result = await service.getStockHistory(productId, filteredDto);
+
+      // then
+      expect(skuRepository.findByProductIdAndExpirationDate).toHaveBeenCalledWith(
+        productId,
+        filteredDto.expirationDate,
+      );
+      // findAndCountBySkuIds가 필터링된 SKU의 ID 배열로 호출되었는지 검증
+      expect(stockHistoryRepository.findAndCountBySkuIds).toHaveBeenCalledWith([specificSku.id], {
+        offset: filteredDto.offset,
+        limit: filteredDto.limit,
+      });
+      expect(result.total).toBe(totalCount);
+      expect(result.items.length).toBe(1);
+    });
+
+    it('제품은 있지만 SKU가 없는 경우 빈 배열을 반환해야 한다', async () => {
+      // given
+      productRepository.findById.mockResolvedValue(mockProduct);
+      skuRepository.findByProductId.mockResolvedValue([]); // 빈 배열을 반환
+
+      // when
+      const result = await service.getStockHistory(productId, paginationDto);
+
+      // then
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(stockHistoryRepository.findAndCountBySkuIds).not.toHaveBeenCalled();
     });
   });
 });

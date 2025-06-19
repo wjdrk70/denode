@@ -1,5 +1,6 @@
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '@app/storage/entity/base.entity';
+import { SkuEntity } from '@app/storage/entity/sku.entity';
 
 @Entity('product')
 export class ProductEntity extends BaseEntity {
@@ -9,4 +10,7 @@ export class ProductEntity extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   description: string;
+
+  @OneToMany(() => SkuEntity, (sku) => sku.product)
+  skus: SkuEntity[];
 }

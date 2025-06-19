@@ -1,63 +1,45 @@
 import * as request from 'supertest';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserEntity } from '@app/storage/entity/user.entity';
 import { ProductEntity } from '@app/storage/entity/product.entity';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CoreApiModule } from '@api/core-api.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CreateProductDto } from '@app/product/dto/create-product.dto';
+import { CreateProductRequestDto } from '@app/product/dto/request/create-product-request.dto';
+import { createTestApp, createTestUserAndLogin } from './test-data.setup';
 
 describe('ProductController (e2e)', () => {
   let app: INestApplication;
-  let userRepository: Repository<UserEntity>;
   let productRepository: Repository<ProductEntity>;
+  let userRepository: Repository<UserEntity>;
   let accessToken: string;
-
-  const userCredentials = { email: 'test2@example.com', password: 'password123' };
+  const createdProductIds: number[] = [];
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [CoreApiModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-
-    userRepository = moduleFixture.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
-    productRepository = moduleFixture.get<Repository<ProductEntity>>(getRepositoryToken(ProductEntity));
-
-    await app.init();
-
-    // E2E 테스트를 위한 사용자 생성 및 로그인
-    await request(app.getHttpServer()).post('/auth/signup').send(userCredentials);
-    const loginResponse = await request(app.getHttpServer()).post('/auth/signin').send(userCredentials);
-    accessToken = loginResponse.body.accessToken;
+    app = await createTestApp();
+    productRepository = app.get(getRepositoryToken(ProductEntity));
+    userRepository = app.get(getRepositoryToken(UserEntity));
+    accessToken = (
+      await createTestUserAndLogin(app, {
+        email: 'product-e2e@test.com',
+        password: 'password123',
+      })
+    ).accessToken;
   });
 
-  beforeEach(async () => {
-    // 각 테스트 실행 전 product 테이블 초기화
-    await productRepository.clear();
-    await userRepository.clear();
-
-    // E2E 테스트를 위한 사용자 생성 및 로그인
-    await request(app.getHttpServer()).post('/auth/signup').send(userCredentials);
-    const loginResponse = await request(app.getHttpServer()).post('/auth/signin').send(userCredentials);
-    accessToken = loginResponse.body.accessToken;
+  afterEach(async () => {
+    if (createdProductIds.length > 0) {
+      await productRepository.delete(createdProductIds);
+      createdProductIds.length = 0; // 배열 비우기
+    }
   });
 
   afterAll(async () => {
+    await userRepository.clear(); // 이 테스트 파일에서 만든 user 정리
     await app.close();
   });
 
   describe('/product (POST)', () => {
-    const createProductDto: CreateProductDto = {
+    const createProductDto: CreateProductRequestDto = {
       name: '초코에몽 190ml * 10',
       description: '초코에몽 190ml unit 1',
     };

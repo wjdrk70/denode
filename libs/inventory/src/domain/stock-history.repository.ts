@@ -6,4 +6,8 @@ export interface StockHistoryRepository {
   save(history: StockHistory): Promise<StockHistory>;
 
   findBySkuId(skuId: number): Promise<StockHistory[]>;
+
+  findAndCountBySkuId(skuId: number, option: { offset: number; limit: number }): Promise<[StockHistory[], number]>;
+
+  findAndCountBySkuIds(skuIds: number[], option: { offset: number; limit: number }): Promise<[StockHistory[], number]>;
 }

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { USER_REPOSITORY, UserRepository } from '@app/user/domain/user.repository';
 import { User } from '@app/user/domain/user';
 import { UserAlreadyExistsException } from '@app/user/support/exception/user-already-exists.exception';

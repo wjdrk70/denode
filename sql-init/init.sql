@@ -32,8 +32,9 @@ CREATE TABLE sku
 CREATE TABLE stock_history
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    sku_id      BIGINT NOT NULL,       -- sku 테이블 외래키
+    sku_id      BIGINT NOT NULL,
+    user_id     BIGINT NOT NULL,
     type        VARCHAR(10) NOT NULL,  -- 'INBOUND' 또는 'OUTBOUND'
-    quantity    INT UNSIGNED NOT NULL, -- 변경된 수량
+    quantity    INT UNSIGNED NOT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
