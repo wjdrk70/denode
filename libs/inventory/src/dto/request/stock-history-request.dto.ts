@@ -3,7 +3,7 @@ import { IsDate, IsInt, IsNotEmpty, IsOptional, Max, Min } from 'class-validator
 import { Type } from 'class-transformer';
 
 export class StockHistoryRequestDto {
-  @ApiPropertyOptional({ default: 'null', description: '특정 유통기한 필터링 (YYYY-MM-DD)', required: false })
+  @ApiPropertyOptional({ description: '특정 유통기한 필터링 (YYYY-MM-DD) null 허용', required: false })
   @Type(() => Date)
   @IsDate()
   @IsOptional()
