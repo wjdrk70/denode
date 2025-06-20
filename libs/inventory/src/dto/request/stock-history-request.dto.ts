@@ -1,9 +1,12 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDate, IsInt, IsNotEmpty, IsOptional, Max, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDate, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class StockHistoryRequestDto {
-  @ApiPropertyOptional({ description: '특정 유통기한 필터링 (YYYY-MM-DD) null 허용', required: false })
+  @ApiPropertyOptional({
+    description: '특정 유통기한 필터링 (YYYY-MM-DD) 을 입력하면 특정 sku 만 조회 빈값은 전체 조회',
+    required: false,
+  })
   @Type(() => Date)
   @IsDate()
   @IsOptional()

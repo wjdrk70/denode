@@ -1,10 +1,16 @@
 ## 📖 README.md
 
-### 프로젝트 설명
+### 목차
 
-이 프로젝트는 NestJS, TypeORM, MySQL을 사용하여 구현한 재고 관리 시스템 API입니다.
+1. [주요 기능](#주요-기능)
+2. [기술 스택](#기술-스택)
+3. [시스템 아키텍처](#시스템-아키텍처)
+4. [데이터베이스 설계](#데이터베이스-설계)
+5. [핵심 기능 구현 전략](#핵심-기능-구현-전략)
+6. [실행 및 테스트 방법](#실행-및-테스트-방법)
+7. [API 문서 (Swagger UI)](#api-문서-swagger-ui)
 
-### 주요 기능
+### ✨주요 기능
 
 - JWT 기반 사용자 인증 (회원가입, 로그인)
 - 제품 등록 및 관리
@@ -13,50 +19,64 @@
 
 -----
 
-### ⚙️ 설치 및 실행 방법
+### 🛠️기술 스택
 
-**1. `.env` 파일 생성**
-
-프로젝트를 실행하기 전, 루트 디렉터리에 `.env` 파일을 생성해야 합니다. 아래는 `.env` 파일의 예시이며, 필요에 따라 값을 수정하여 사용해 주세요.
-
-```env
-# Database Credentials
-DB_HOST=mysql
-DB_PORT=3306
-DB_USERNAME=root
-DB_PASSWORD=your_mysql_root_password # docker-compose.yml의 MYSQL_ROOT_PASSWORD와 동일해야 합니다.
-DB_DATABASE=denode_db
-
-# JWT Secret
-JWT_SECRET=your_secret_key_for_jwt
-```
-
-**2. Docker Compose를 이용한 애플리케이션 실행**
-
-프로젝트 루트 디렉터리에서 아래 명령어를 실행하여 Docker 컨테이너를 빌드하고 실행합니다.
-
-```bash
-# -d 옵션으로 백그라운드에서 실행합니다.
-# Docker Compose V2 (권장)
-docker compose up --build -d
-
-# Docker Compose V1 (구 버전)
-docker-compose up --build -d
-```
-
-애플리케이션은 `http://localhost:3000` 에서 실행됩니다.
+- Framework: NestJS
+- Language: TypeScript
+- ORM: TypeORM
+- Database: MySQL
+- API Documentation: Swagger
+- Testing: Jest, Supertest
+- Containerization: Docker, Docker Compose
 
 -----
 
-네, 알겠습니다. `README.md` 파일에 데이터베이스 관계도와 `Product`와 `SKU`를 분리한 설계 이유에 대한 설명을 추가하겠습니다. 이 내용은 프로젝트의 구조를 이해하는 데 매우 중요합니다.
+### 💻시스템 아키텍처
+
+본 프로젝트는 유지보수성, 테스트 용이성, 확장성을 핵심 목표로 계층형 아키텍처(Layered Architecture) 와 도메인 주도 설계(DDD)를 자체 컨벤션으로 사용했습니다.
+
+#### 아키텍처 원칙
+
+- 도메인과 인프라의 분리: libs/inventory/src/domain과 같이 순수한 비즈니스 규칙과 데이터를 담는 도메인 계층과, libs/storage처럼 데이터베이스 연동, 외부 API 호출 등 기술적인
+  세부사항을 다루는 인프라 계층을 명확히 분리했습니다. 이를 통해 비즈니스 로직이 특정 DB 기술(TypeORM, MySQL)에 종속되지 않도록 했습니다.
+
+
+- 의존성 역전 원칙 (DIP): 상위 계층(도메인)이 하위 계층(인프라)에 직접 의존하지 않고, 추상화된 인터페이스에 의존하도록 설계했습니다. 예를 들어, InventoryService는
+  SkuOrmRepository라는 구체적인 클래스가 아닌, SKU_REPOSITORY라는 추상화된 토큰(인터페이스)에 의존합니다.
+
+#### 모듈 구조 및 의존성
+
+NestJS 모노레포 구조를 활용하여 기능별 모듈을 분리하고, 모든 의존성은 외부(apps/core-api)에서 내부(비즈니스 로직), 그리고 인프라(libs/storage)로 향하는 단방향으로 흐르도록 제어하여
+순환 참조를 방지했습니다.
+
+```mermaid
+graph TD
+    subgraph "Application Layer"
+        A[apps/core-api]
+    end
+    subgraph "Business Logic Layer"
+        B(libs/auth)
+        C(libs/product)
+        D(libs/inventory)
+        E(libs/user)
+    end
+    subgraph "Infrastructure Layer"
+        G(libs/storage)
+        H(libs/transaction)
+        F(libs/exception)
+    end
+
+    A --> B; A --> C; A --> D;
+    B --> E; B --> F;
+    C --> G; C --> F;
+    D --> C; D --> G; D --> H; D --> F;
+    E --> G; E --> F;
+    G --> H;
+```
 
 ---
 
-### `README.md` 추가 제안
-
-기존 `README.md` 파일의 적절한 위치(예: "API 문서" 섹션 앞)에 아래 내용을 추가하시면 됩니다.
-
-### 💾 데이터베이스 설계 (Database Design)
+### 💾데이터베이스 설계
 
 본 프로젝트의 데이터베이스는 제품의 메타 정보와 실제 재고 단위를 명확하게 분리하여 관리의 유연성과 확장성을 확보하는 데 중점을 두었습니다.
 
@@ -108,8 +128,8 @@ erDiagram
 "제품"과 "재고"를 하나의 테이블로 관리할 수도 있지만, `Product`와 `SKU`로 분리한 이유는 재고 관리 시스템의 핵심 요구사항을 더 명확하고 유연하게 처리하기 위함입니다.
 
 - **개념적 분리**
-    - **`Product`**: '어떤 상품인가?'에 대한 정의입니다. (예: "코카콜라 355ml")
-    - **`SKU`**: '그래서 그 상품이 몇 개 있고, 어떤 특징을 가지는가?'에 대한 실체입니다. (예: "유통기한이 2025년 12월 31일인 코카콜라 355ml 100개")
+    - **`Product`**: '어떤 상품인가?'에 대한 정의입니다. (예: "초코에몽 190ml * 5개입")
+    - **`SKU`**: '그래서 그 상품이 몇 개 있고, 어떤 특징을 가지는가?'에 대한 실체입니다. (예: "유통기한이 2025년 12월 31일인 초코에몽 190ml 100개")
 
 - **설계의 장점**
     1. **세분화된 재고 추적**: 이 구조 덕분에 동일한 제품이라도 **유통기한별로 재고를 따로 관리**할 수 있습니다. 이는 재고 관리의 핵심 원칙인 **FEFO(First-Expired,
@@ -121,102 +141,91 @@ erDiagram
 
 ---
 
-### 💻 시스템 아키텍처
-
-본 프로젝트는 다음 세 가지를 핵심 목표로 아키텍처를 설계했습니다.
-
-유지보수성: 비즈니스 로직의 변경이 다른 부분에 미치는 영향을 최소화하고, 새로운 기능을 쉽게 추가할 수 있는 구조를 지향합니다.
-테스트 용이성: 각 계층과 모듈이 독립적으로 테스트 가능하도록 설계하여 코드의 신뢰성을 높입니다.
-확장성: 향후 비즈니스 요구사항이 복잡해지거나 트래픽이 증가하더라도 유연하게 대응할 수 있는 기반을 마련합니다.
-
-위 목표를 달성하기 위해 **계층형 아키텍처(Layered Architecture)**를 기반으로 **도메인 주도 설계(DDD)**을 자체 컨벤션으로 적용했습니다.
-
-- 도메인과 인프라의 분리: libs/inventory/src/domain과 같이 순수한 비즈니스 규칙과 데이터를 담는 도메인 계층과, libs/storage처럼 데이터베이스 연동, 외부 API 호출 등 기술적인
-  세부사항을 다루는 인프라 계층을 명확히 분리했습니다. 이를 통해 비즈니스 로직이 특정 DB 기술(TypeORM, MySQL)에 종속되지 않도록 했습니다.
-- 의존성 역전 원칙 (DIP): 상위 계층(도메인)이 하위 계층(인프라)에 직접 의존하지 않고, 추상화된 인터페이스에 의존하도록 설계했습니다. 예를 들어, InventoryService는
-  SkuOrmRepository라는 구체적인 클래스가 아닌, SKU_REPOSITORY라는 추상화된 토큰(인터페이스)에 의존합니다.
-
-NestJS의 모노레포 구조를 활용하여 기능별로 모듈을 분리하고, 모듈 간 의존성이 한 방향으로 흐르도록 제어했습니다.
-
-코드 스니펫
-
-```mermaid
-graph TD
-A[apps/core-api] --> B(libs/auth);
-A --> C(libs/product);
-A --> D(libs/inventory);
-
-    B --> E(libs/user);
-    B --> F(libs/exception);
-
-    C --> G(libs/storage);
-    C --> F;
-
-    D --> C;
-    D --> G;
-    D --> H(libs/transaction);
-    D --> F;
-
-    E --> G;
-    E --> F;
-
-    G --> H;
-    G --> E;
-    G --> D;
-    G --> C;
-  ```
-
-단방향 의존성: 모든 의존성은 외부(Controller)에서 내부(Domain, Service), 그리고 인프라(storage)로 향하며 순환 참조가 발생하지 않습니다.
-데이터베이스 종속성 처리: DB별 특성을 타는 로직은 storage 모듈에 캡슐화했습니다.
----
-
 ### 🦾핵심 기능 구현 전략
 
-동시성 제어: 비관적 락 (Pessimistic Lock)
-문제 상황 정의
-재고가 10개 남은 상품에 대해 두 명의 사용자가 거의 동시에 각각 7개씩 출고 요청을 보내는 Race Condition이 발생할 수 있습니다.
-두 요청 모두 재고가 10개임을 확인하고, 결과적으로 재고가 -4개가 되는 데이터 불일치 문제가 발생합니다.
+#### 동시성 제어: 비관적 락 (Pessimistic Lock)
 
-해결 전략 및 Trade-off
-이 문제를 해결하기 위해 **비관적 락(Pessimistic Lock)**과 트랜잭션 격리 수준(Isolation Level) 조정이라는 두 가지 방법을 고려했습니다.
+- 문제: 재고가 10개 남은 상품에 대해 두 사용자가 동시에 7개씩 출고 요청 시, 데이터 정합성이 깨져 재고가 음수가 될 수 있는 **Race Condition**이 발생할 수 있습니다.
 
-- 트랜잭션 격리 수준 제어 (SERIALIZABLE): 가장 엄격한 격리 수준으로, 트랜잭션을 순서대로 실행하는 것처럼 동작시켜 동시성 문제를 원천적으로 차단합니다.
-- 하지만 필요 이상으로 넓은 범위의 데이터(테이블 전체 등)에 락을 걸 수 있어, 동시 요청이 많은 환경에서는 성능 저하와 데드락(Deadlock) 발생 가능성이 큽니다.
 
-- 비관적 락 (SELECT ... FOR UPDATE): 데이터베이스에서 특정 레코드(row)에 명시적으로 락을 거는 방식입니다.
-- 다른 트랜잭션은 락이 해제될 때까지 해당 레코드에 접근할 수 없습니다.
+- 해결: 이 문제를 해결하기 위해 비관적 락과 트랜잭션 격리 수준 조정을 고려했습니다.
+    1. SERIALIZABLE 격리 수준은 가장 강력하지만, 필요 이상의 넓은 범위에 락을 걸어 성능 저하 및 데드락 가능성이 큽니다.
+    2. **비관적 락 SELECT ... FOR UPDATE**은 문제가 되는 특정 레코드(row)만 정밀하게 잠글 수 있습니다.
 
-본 프로젝트에서는 비관적 락을 선택했습니다. 그 이유는 다음과 같습니다.
 
-명시적인 의도: skuRepository.findForUpdateByProductId와 같이, 코드 수준에서 어느 부분에 락이 필요한지 명확하게 드러나 유지보수가 용이합니다.
-데이터 정합성: '재고 조회 → 수량 계산 → 재고 업데이트'라는 일련의 과정을 하나의 원자적 단위로 묶어주어, 데이터 정합성을 완벽하게 보장합니다.
-따라서 비관적 락은 재고 관리와 같이 데이터 정합성이 매우 중요하고 특정 레코드에 대한 경합이 예상되는 '읽기-수정-쓰기' 시나리오에 가장 적합한 해결책이라고 판단했습니다.
+- 선택: 비관적 락을 최종 선택했습니다. 특정 재고에 대한 경합이 예상되는 '읽기-수정-쓰기' 시나리오에서, 성능 손실을 최소화하면서 데이터 정합성을 완벽하게 보장하는 가장 적합한 해결책이라고 판단했습니다.
+  이 로직은 skuRepository.findForUpdateByProductId 메소드에 명시적으로 구현되어 있습니다.
 
+#### 예외 처리
+
+- CustomException: 모든 비즈니스 예외가 상속받는 추상 클래스를 두어 errorCode, httpStatus를 갖도록 강제했습니다.<br />
+  InsufficientStockException처럼 이름만으로 의도를 알 수 있는 구체적인 예외를 사용하여 코드 가독성을 높였습니다.
+
+
+- GlobalExceptionFilter: 모든 예외를 중앙에서 처리하며, 5xx 에러는 error로, 4xx 비즈니스 예외는 warn 레벨로 로깅을 분리하여 효과적인 모니터링이 가능하도록 구현했습니다.
 
 ---
 
-### 📄 API 문서 (Swagger UI)
+### 🚀실행 및 테스트 방법
+
+#### 사전 준비
+
+- Docker 및 Docker Compose 설치
+- 프로젝트 루트 디렉터리에 .env 파일 생성 (아래 내용 참고)
+
+```env
+# Database Credentials
+DB_HOST=mysql
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_root_password # docker-compose.yml의 MYSQL_ROOT_PASSWORD와 동일해야 합니다.
+DB_DATABASE=denode_db
+
+# JWT Secret
+JWT_SECRET=your_secret_key_for_jwt
+```
+
+#### Docker Compose를 이용한 애플리케이션 실행
+
+프로젝트 루트 디렉터리에서 아래 명령어를 실행하여 Docker 컨테이너를 빌드하고 실행합니다.
+
+```bash
+# -d 옵션으로 백그라운드에서 실행합니다.
+# Docker Compose V2 (권장)
+docker compose up --build -d
+
+# Docker Compose V1 (구 버전)
+docker-compose up --build -d
+```
+
+애플리케이션은 `http://localhost:3000` 에서 실행됩니다.
+
+#### 테스트
+
+```bash
+# Docker Compose V2 (권장)
+# 단위 테스트 실행
+docker compose exec app npm run test
+
+# E2E 테스트 실행
+docker compose exec app npm run test:e2e
+
+# Docker Compose V1 (구 버전)
+# 단위 테스트 실행
+ docker-compose exec app npm run test
+ 
+# E2E 테스트 실행
+ docker-compose exec app npm run test:e2e
+```
+
+-----
+
+### 📄API 문서 (Swagger UI)
 
 애플리케이션이 실행되면, 아래 주소에서 API 문서를 확인하고 직접 테스트해볼 수 있습니다.
 
 - **Swagger UI 주소**: [http://localhost:3000/api](https://www.google.com/search?q=http://localhost:3000/api)
 
 Swagger 우측 상단의 `Authorize` 버튼을 클릭하고, 로그인 API를 통해 발급받은 `accessToken`을 복사해서 넣으시면 인증이 필요한 API를 테스트할 수 있습니다.
-
------
-
-### 🧪 테스트
-
-프로젝트의 테스트를 실행하려면 아래 명령어를 사용하세요.
-
-```bash
-# 단위 테스트 (Unit Tests)
-$ npm run test
-
-# E2E 테스트 (End-to-End Tests)
-# 주의: test:e2e 실행 시 .env.test 파일이 필요할 수 있습니다.
-$ npm run test:e2e
-
-```
 
 -----
